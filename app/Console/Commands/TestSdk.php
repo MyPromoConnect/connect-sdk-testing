@@ -2,32 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Exception;
 use GuzzleHttp\Client;
 use App\Services\ClientService;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
 use MyPromo\Connect\SDK\Exceptions\ApiRequestException;
 use MyPromo\Connect\SDK\Exceptions\ApiResponseException;
-use MyPromo\Connect\SDK\Exceptions\CarrierException;
-use MyPromo\Connect\SDK\Exceptions\CountryException;
 use MyPromo\Connect\SDK\Exceptions\InputValidationException;
-use MyPromo\Connect\SDK\Exceptions\InvalidResponseException;
-use MyPromo\Connect\SDK\Exceptions\LocaleException;
-use MyPromo\Connect\SDK\Exceptions\ProductException;
-use MyPromo\Connect\SDK\Exceptions\ProductExportException;
-use MyPromo\Connect\SDK\Exceptions\GeneralException;
-use MyPromo\Connect\SDK\Exceptions\StateException;
-use MyPromo\Connect\SDK\Exceptions\TimezoneException;
 use MyPromo\Connect\SDK\Repositories\Orders\OrderRepository;
-use Psr\Cache\InvalidArgumentException;
-
-use MyPromo\Connect\SDK\Exceptions\DesignException;
 use MyPromo\Connect\SDK\Models\Design;
 use MyPromo\Connect\SDK\Repositories\Designs\DesignRepository;
-use MyPromo\Connect\SDK\Models\ProductExport;
-use MyPromo\Connect\SDK\Helpers\ProductExportFilterOptions;
 
 class TestSdk extends Command
 {
@@ -160,7 +143,6 @@ class TestSdk extends Command
             return 0;
         } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
-            dd("i am here");
             $this->stopMessage();
             return 0;
         }
