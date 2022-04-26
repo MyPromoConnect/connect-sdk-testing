@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use MyPromo\Connect\SDK\Client;
+use MyPromo\Connect\SDK\Exceptions\InputValidationException;
 
 class ClientService
 {
     /**
      * This will be the url which we used as connect endpoint to access data.
-     * You can set this in .env file against variable (CONNECT_ENDPOINT_URL)
+     * You can set this in ..env file against variable (CONNECT_ENDPOINT_URL)
      *
      * @var $connectEndPointUrl
      */
@@ -30,6 +31,7 @@ class ClientService
      * @param $clientId
      * @param $clientSecret
      * @return Client
+     * @throws InputValidationException
      */
     public function connect($clientId, $clientSecret): Client
     {

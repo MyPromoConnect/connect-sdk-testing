@@ -12,6 +12,7 @@ use MyPromo\Connect\SDK\Exceptions\ApiRequestException;
 use MyPromo\Connect\SDK\Exceptions\ApiResponseException;
 use MyPromo\Connect\SDK\Exceptions\CarrierException;
 use MyPromo\Connect\SDK\Exceptions\CountryException;
+use MyPromo\Connect\SDK\Exceptions\InputValidationException;
 use MyPromo\Connect\SDK\Exceptions\InvalidResponseException;
 use MyPromo\Connect\SDK\Exceptions\LocaleException;
 use MyPromo\Connect\SDK\Exceptions\ProductException;
@@ -46,7 +47,7 @@ class TestSdk extends Command
 
     /**
      * This will be the url which we used as connect endpoint to access data.
-     * You can set this in .env file against variable (CONNECT_ENDPOINT_URL)
+     * You can set this in ..env file against variable (CONNECT_ENDPOINT_URL)
      *
      * @var $connectEndPointUrl
      */
@@ -92,12 +93,10 @@ class TestSdk extends Command
         $this->makeConnectionWithClient();
         $this->info('');
 
-        /*
         # Test Design Module
         $this->testDesignModule();
         $this->info('');
         dd('end');
-        */
 
 
         # Test Orders Module
@@ -112,8 +111,6 @@ class TestSdk extends Command
         # Test product export
         $this->testProductExport();
         $this->info('');
-
-        dd('end');
 
 
         # Test product import
@@ -141,28 +138,33 @@ class TestSdk extends Command
      */
     public function makeConnectionWithClient()
     {
-        $this->startMessage("Build client connection. This module will test and create connection with '{$this->connectEndPointUrl}'");
+        $this->startMessage("Build client connection. This module will test and create connection with ' . $this->connectEndPointUrl . '");
         $clientId = config('connect.client_id');
         $clientSecret = config('connect.client_secret');
 
-        if (empty($clientId) || empty($clientSecret)) {
-            $this->warn('Client ID or Client Secret is missing. Please fill this detail in .env file and try again!');
-            $this->stopMessage();
-        }
-
         try {
+
             $this->client = $this->clientService->connect($clientId, $clientSecret);
             $status = $this->client->status();
 
             if ($status['message'] !== 'OK') {
-                $this->warn('Connection failed!');
+                $this->error('Connection failed!');
                 return 0;
             }
 
             $this->info('Connection created successfully!');
-        } catch (ClientException | InvalidArgumentException $e) {
-            $this->warn($e->getMessage());
+
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            dd("i am here");
+            $this->stopMessage();
+            return 0;
         }
+
 
         $this->info('Client connection testing finished!');
     }
@@ -191,9 +193,14 @@ class TestSdk extends Command
             $userHash = $designRepository->createEditorUserHash($design);
             $design->setEditorUserHash($userHash['editor_user_hash']);
             $this->info('Editor user hash generate successfully!');
-        } catch (DesignException | InvalidArgumentException $e) {
-            $this->warn($e->getMessage());
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
         }
 
         // Create Design
@@ -204,9 +211,14 @@ class TestSdk extends Command
             if ($design->getId()) {
                 $this->info('Design with ID ' . $design->getId() . ' created successfully!');
             }
-        } catch (DesignException | InvalidArgumentException $e) {
-            $this->warn($e->getMessage());
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
         }
 
         // Submit Design
@@ -214,9 +226,14 @@ class TestSdk extends Command
             $this->info('Submitting design....');
             $designRepository->submit($design->getId());
             $this->info('Design submitted successfully!');
-        } catch (DesignException | InvalidArgumentException $e) {
-            $this->warn($e->getMessage());
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
         }
 
         // Get Preview
@@ -224,9 +241,14 @@ class TestSdk extends Command
             $this->info('Trying to get preview.....');
             $designRepository->getPreviewPDF($design->getId());
             $this->info('Preview received successfully!');
-        } catch (DesignException | InvalidArgumentException $e) {
-            $this->warn($e->getMessage());
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
         }
 
         // Save Preview
@@ -234,9 +256,14 @@ class TestSdk extends Command
             $this->info('Trying preview save .....');
             $designRepository->savePreview($design->getId(), 'preview.pdf');
             $this->info('Preview saved successfully!');
-        } catch (DesignException | InvalidArgumentException $e) {
-            $this->warn($e->getMessage());
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
         }
 
         $this->info('Design module testing finished!');
@@ -258,8 +285,14 @@ class TestSdk extends Command
         try {
             $this->info('Create a new design user');
             $hash = $designRepository->createEditorUserHash($design);
-        } catch (DesignException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
         }
 
 
@@ -277,8 +310,13 @@ class TestSdk extends Command
         try {
             $this->info('Create a design with the design user');
             $designResponse = $designRepository->create($design);
-        } catch (DesignException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -288,8 +326,13 @@ class TestSdk extends Command
             $this->info('Submit the design');
             $designResponse = $designRepository->submit($design->getId());
             $this->info(print_r($designResponse, 1));
-        } catch (DesignException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -346,8 +389,13 @@ class TestSdk extends Command
             $this->info('Sending order');
             $orderResponse = $orderRepository->create($order);
             $this->info(print_r($orderResponse, 1));
-        } catch (OrderException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -418,15 +466,16 @@ class TestSdk extends Command
             if ($productExport->getId()) {
                 $this->info('Export with ID ' . $productExport->getId() . 'created successfully!');
             }
-        } catch (ApiResponseException | InvalidResponseException $e) {
-            $this->error('Creating Export Request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(),true) .' - HHTP_CODE: ' . $e->getCode());
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
             return 0;
         } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
-        dd('die export');
 
 
         /*
@@ -496,13 +545,13 @@ class TestSdk extends Command
             if ($productImport->getId()) {
                 $this->info('Import with ID ' . $productImport->getId() . 'created successfully!');
             }
-        } catch (GuzzleException $e) {
-
-            $this->error($e->getMessage());
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
             return 0;
-        } catch (ProductImportException | InvalidArgumentException $e) {
-
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
         */
@@ -557,8 +606,13 @@ class TestSdk extends Command
         try {
             $productsResponse = $productsRepository->all($productsOptions);
             $this->info(print_r($productsResponse, true));
-        } catch (ProductException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -574,8 +628,13 @@ class TestSdk extends Command
         try {
             $productsResponse = $productsRepository->getSeo($seoOptions);
             $this->info(print_r($productsResponse, true));
-        } catch (ProductException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -618,8 +677,13 @@ class TestSdk extends Command
         try {
             $apiStatusResponse = $generalRepository->apiStatus();
             $this->info(print_r($apiStatusResponse, true));
-        } catch (GeneralException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -639,8 +703,13 @@ class TestSdk extends Command
             // alternativly offer savetodisk option and filename in the method
             // eg. downloadFile($url, true, '/path/to/file.ext')
 
-        } catch (GeneralException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -656,8 +725,13 @@ class TestSdk extends Command
         try {
             $carrierResponse = $carrierRepository->all($carrierOptions);
             $this->info(print_r($carrierResponse, true));
-        } catch (CarrierException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -673,8 +747,13 @@ class TestSdk extends Command
         try {
             $countryResponse = $countryRepository->all($countryOptions);
             $this->info(print_r($countryResponse, true));
-        } catch (CountryException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -690,8 +769,13 @@ class TestSdk extends Command
         try {
             $localeResponse = $localeRepository->all($localeOptions);
             $this->info(print_r($localeResponse, true));
-        } catch (LocaleException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -707,8 +791,13 @@ class TestSdk extends Command
         try {
             $stateResponse = $stateRepository->all($stateOptions);
             $this->info(print_r($stateResponse, true));
-        } catch (StateException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -724,8 +813,13 @@ class TestSdk extends Command
         try {
             $timeZonesResponse = $timeZonesRepository->all($timeZonesOptions);
             $this->info(print_r($timeZonesResponse, true));
-        } catch (TimezoneException | InvalidArgumentException $e) {
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
+            $this->stopMessage();
             return 0;
         }
 
@@ -758,6 +852,8 @@ class TestSdk extends Command
     public function stopMessage(): int
     {
         $this->error('Testing stopped!');
+        dd();
         return 0;
+
     }
 }
