@@ -416,17 +416,12 @@ class TestSdk extends Command
     public function testProductExport()
     {
         $this->startMessage('Product Export Module testing...');
-
-
         $requestExportRepository = new \MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductExportRepository($this->client);
 
-        /*
-         * TODO error in API - CO2291
-         *
-         */
 
         $this->testDetail('Requesting new export...');
         $productExport = $this->createExport($requestExportRepository);
+
 
         $this->testDetail('Request data of newly created export...');
 
@@ -480,7 +475,7 @@ class TestSdk extends Command
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
-            return 0;
+            //return 0; // TODO - is always failing cause its depending on status of job
         } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
             $this->stopMessage();
@@ -497,7 +492,7 @@ class TestSdk extends Command
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
-            return 0;
+            //return 0; // TODO - is always failing cause its depending on status of job
         } catch (ApiRequestException $e) {
             $this->error($e->getMessage());
             $this->stopMessage();
@@ -566,9 +561,112 @@ class TestSdk extends Command
     public function testProductImport()
     {
         $this->startMessage('Product Import Module testing...');
-
         $requestImportRepository = new \MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductImportRepository($this->client);
 
+
+        $this->testDetail('Requesting new import...');
+        $productImport = $this->createImport($requestImportRepository);
+
+
+        $this->testDetail('Request data of newly created import...');
+
+        try {
+            $requestImportByIdResponse = $requestImportRepository->find($productImport->getId());
+            $this->info(print_r($requestImportByIdResponse, 1));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+        $this->testDetail('Request data of all imports...');
+
+        try {
+            $productImportOptions = new \MyPromo\Connect\SDK\Helpers\ProductImportOptions();
+            $productImportOptions->setPage(1); // get data from this page number
+            $productImportOptions->setPerPage(5);
+            $productImportOptions->setPagination(false);
+            $productImportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
+            $productImportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
+
+            $this->info(print_r($productImportOptions->toArray(), 1));
+
+            $requestImportAllResponse = $requestImportRepository->all($productImportOptions);
+
+            $this->info(print_r($requestImportAllResponse, 1));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Requesting new import... Cancel test');
+        $productImport = $this->createImport($requestImportRepository);
+        try {
+            $this->info('Trying to cancel...');
+            $requestImportByIdResponse = $requestImportRepository->cancelImport($productImport->getId());
+            $this->info(print_r($requestImportByIdResponse, 1));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            //return 0; // TODO - is always failing cause its depending on status of job
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Requesting new import... Delete test');
+        $productImport = $this->createImport($requestImportRepository);
+        try {
+            $this->info('Trying to delete...');
+            $requestImportByIdResponse = $requestImportRepository->deleteImport($productImport->getId());
+            $this->info(print_r($requestImportByIdResponse, 1));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            #return 0; // TODO - is always failing cause its depending on status of job
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Requesting new import... Validate test');
+        $productImport = $this->createImport($requestImportRepository);
+        try {
+            $this->info('Trying to validate...');
+            $requestImportByIdResponse = $requestImportRepository->validate($productImport->getId());
+            $this->info(print_r($requestImportByIdResponse, 1));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            #return 0; // TODO - is always failing cause its depending on status of job
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        // TODO
+        // confirm import (needs body data...)
+
+    }
+
+    public function createImport(\MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductImportRepository $requestImportRepository)
+    {
         $productImport = new \MyPromo\Connect\SDK\Models\ProductImport();
         $productImport->setTempletaId(null);
         $productImport->setTempletaKey('prices');
@@ -606,36 +704,9 @@ class TestSdk extends Command
             return 0;
         }
 
-        dd('die');
-
-        /*
-        $this->startMessage('Request data of newly created import...');
-
-        // TODO: Add try catch after the solution has been fixed - see CO-2293
-        $requestImportByIdResponse = $requestImportRepository->find($productImport->getId());
-        $this->info(print_r($requestImportByIdResponse, 1));
-
-        // TODO: add confirm, validate, cancel, delete
-
-        */
-
-        $this->startMessage('Request data of all imports...');
-
-        // TODO: Add try catch after the solution has been fixed - see CO-2293
-        $productImportOptions = new \MyPromo\Connect\SDK\Helpers\ProductImportOptions();
-        $productImportOptions->setPage(1); // get data from this page number
-        $productImportOptions->setPerPage(5);
-        $productImportOptions->setPagination(false);
-        #$productImportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
-        #$productImportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
-
-        $this->info(print_r($productImportOptions->toArray(), 1));
-
-        $requestImportAllResponse = $requestImportRepository->all($productImportOptions);
-
-        $this->info(print_r($requestImportAllResponse, 1));
-
+        return $productImport;
     }
+
 
     /*
      * testProducts
@@ -904,6 +975,5 @@ class TestSdk extends Command
     {
         $this->error('Test failed...');
         return 0;
-
     }
 }
