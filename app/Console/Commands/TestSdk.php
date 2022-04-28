@@ -82,10 +82,9 @@ class TestSdk extends Command
 
 
         # Test Orders Module
-        $this->testOrdersModule();
-        $this->info('');
+        #$this->testOrdersModule();
+        #$this->info('');
 
-        dd('stop');
 
         # Test products
         #$this->testProducts();
@@ -94,6 +93,8 @@ class TestSdk extends Command
         # Test product export
         $this->testProductExport();
         $this->info('');
+
+        dd('stop');
 
 
         # Test product import
@@ -390,7 +391,8 @@ class TestSdk extends Command
 
         $this->info('Create an item');
 
-        $orderItem = new $orderItem->setQuantity(35);\MyPromo\Connect\SDK\Models\OrderItem();
+        $orderItem = new $orderItem->setQuantity(35);
+        \MyPromo\Connect\SDK\Models\OrderItem();
         $orderItem->setReference('your-reference');
         $orderItem->setQuantity(35);
         $orderItem->setOrderId(1);
@@ -422,6 +424,94 @@ class TestSdk extends Command
          * TODO error in API - CO2291
          *
          */
+
+        $this->startMessage('Requesting new export...');
+        $productExport = $this->createExport();
+
+        $this->startMessage('Request data of newly created export...');
+
+        try {
+            $requestExportByIdResponse = $requestExportRepository->find($productExport->getId());
+            $this->info(print_r($requestExportByIdResponse, 1));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->startMessage('Request data of all exports...');
+
+        try {
+            $productExportOptions = new \MyPromo\Connect\SDK\Helpers\ProductExportOptions();
+            $productExportOptions->setPage(1); // get data from this page number
+            $productExportOptions->setPerPage(5);
+            $productExportOptions->setPagination(false);
+            $productExportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
+            $productExportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
+
+            $this->info(print_r($productExportOptions->toArray(), 1));
+
+            $requestExportAllResponse = $requestExportRepository->all($productExportOptions);
+
+            $this->info(print_r($requestExportAllResponse, 1));
+
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->startMessage('Requesting new export... Cancel test');
+        $productExport = $this->createExport();
+        try {
+            $requestExportByIdResponse = $requestExportRepository->cancelExport($productExport->getId());
+            $this->info(print_r($requestExportByIdResponse, 1));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->startMessage('Requesting new export... Delete test');
+        $productExport = $this->createExport();
+        try {
+            $requestExportByIdResponse = $requestExportRepository->deleteExport($productExport->getId());
+            $this->info(print_r($requestExportByIdResponse, 1));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+    }
+
+    
+    public function createExport()
+    {
+        /*
+         * TODO error in API - CO2291
+         *
+         */
+
         $this->startMessage('Requesting new export...');
 
         $productExport = new \MyPromo\Connect\SDK\Models\ProductExport();
@@ -463,37 +553,10 @@ class TestSdk extends Command
             return 0;
         }
 
-
-
-        /*
-        $this->startMessage('Request data of newly created export...');
-
-        // TODO: Add try catch after the solution has been fixed - see CO-2293
-        $requestExportByIdResponse = $requestExportRepository->find($productExport->getId());
-        $this->info(print_r($requestExportByIdResponse, 1));
-
-        // TODO: add cancel, delete
-
-        */
-
-        $this->startMessage('Request data of all exports...');
-
-        // TODO: Add try catch after the solution has been fixed - see CO-2293
-        $productExportOptions = new \MyPromo\Connect\SDK\Helpers\ProductExportOptions();
-        $productExportOptions->setPage(1); // get data from this page number
-        $productExportOptions->setPerPage(5);
-        $productExportOptions->setPagination(false);
-        #$productExportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
-        #$productExportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
-
-        $this->info(print_r($productExportOptions->toArray(), 1));
-
-        $requestExportAllResponse = $requestExportRepository->all($productExportOptions);
-
-        $this->info(print_r($requestExportAllResponse, 1));
-
+        return $productExport;
 
     }
+
 
     /*
      * test sdk module for product import
