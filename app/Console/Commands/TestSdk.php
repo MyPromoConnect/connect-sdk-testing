@@ -91,15 +91,15 @@ class TestSdk extends Command
         #$this->info('');
 
         # Test product export
-        $this->testProductExport();
-        $this->info('');
-
-        dd('stop');
-
+        #$this->testProductExport();
+        #$this->info('');
 
         # Test product import
         $this->testProductImport();
         $this->info('');
+
+        dd('stop');
+
 
         # Test configuratior
         $this->testProductConfigurator();
@@ -425,10 +425,10 @@ class TestSdk extends Command
          *
          */
 
-        $this->startMessage('Requesting new export...');
-        $productExport = $this->createExport();
+        $this->testDetail('Requesting new export...');
+        $productExport = $this->createExport($requestExportRepository);
 
-        $this->startMessage('Request data of newly created export...');
+        $this->testDetail('Request data of newly created export...');
 
         try {
             $requestExportByIdResponse = $requestExportRepository->find($productExport->getId());
@@ -444,7 +444,7 @@ class TestSdk extends Command
         }
 
 
-        $this->startMessage('Request data of all exports...');
+        $this->testDetail('Request data of all exports...');
 
         try {
             $productExportOptions = new \MyPromo\Connect\SDK\Helpers\ProductExportOptions();
@@ -471,9 +471,10 @@ class TestSdk extends Command
         }
 
 
-        $this->startMessage('Requesting new export... Cancel test');
-        $productExport = $this->createExport();
+        $this->testDetail('Requesting new export... Cancel test');
+        $productExport = $this->createExport($requestExportRepository);
         try {
+            $this->info('Trying to cancel...');
             $requestExportByIdResponse = $requestExportRepository->cancelExport($productExport->getId());
             $this->info(print_r($requestExportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
@@ -487,9 +488,10 @@ class TestSdk extends Command
         }
 
 
-        $this->startMessage('Requesting new export... Delete test');
-        $productExport = $this->createExport();
+        $this->testDetail('Requesting new export... Delete test');
+        $productExport = $this->createExport($requestExportRepository);
         try {
+            $this->info('Trying to delete...');
             $requestExportByIdResponse = $requestExportRepository->deleteExport($productExport->getId());
             $this->info(print_r($requestExportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
@@ -504,8 +506,8 @@ class TestSdk extends Command
 
     }
 
-    
-    public function createExport()
+
+    public function createExport(\MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductExportRepository $requestExportRepository)
     {
         /*
          * TODO error in API - CO2291
@@ -531,7 +533,7 @@ class TestSdk extends Command
         $productExport->setFilters($productExportFilterOptions);
 
         $callback = new \MyPromo\Connect\SDK\Models\Callback();
-        $callback->setUrl("https://webhook.site/40b38be3-a76b-4dae-83cc-7bb1a5b7f8a3");
+        $callback->setUrl(config('connect.callback_url'));
         $productExport->setCallback($callback);
 
         try {
@@ -541,7 +543,7 @@ class TestSdk extends Command
             $this->info(print_r($requestExportResponse, 1));
 
             if ($productExport->getId()) {
-                $this->info('Export with ID ' . $productExport->getId() . 'created successfully!');
+                $this->info('Export with ID ' . $productExport->getId() . ' created successfully!');
             }
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -567,7 +569,6 @@ class TestSdk extends Command
 
         $requestImportRepository = new \MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductImportRepository($this->client);
 
-        /*
         $productImport = new \MyPromo\Connect\SDK\Models\ProductImport();
         $productImport->setTempletaId(null);
         $productImport->setTempletaKey('prices');
@@ -576,15 +577,15 @@ class TestSdk extends Command
 
         $productImportInput = new \MyPromo\Connect\SDK\Helpers\ProductImportInput();
         $productImportInput->setUrl('https://downloads.test.mypromo.com/feeds/Merchant-Prices.xlsx');
-        $productImportInput->setFormat('xlsx');
+
+        //$productImportInput->setFormat('xlsx');
+        $productImportInput->setFormat('xslx'); // TODO: BUG https://mypromo.atlassian.net/browse/CO-2302
+
         $productImport->setInput($productImportInput);
 
         $callback = new \MyPromo\Connect\SDK\Models\Callback();
-        $callback->setUrl("https://webhook.site/40b38be3-a76b-4dae-83cc-7bb1a5b7f8a3");
+        $callback->setUrl(config('connect.callback_url'));
         $productImport->setCallback($callback);
-
-        // TODO: payload looks goot but not working !!
-        dd($productImport->toArray());
 
         try {
             $this->info('Sending Import Request');
@@ -593,7 +594,7 @@ class TestSdk extends Command
             $this->info(print_r($requestImportResponse, 1));
 
             if ($productImport->getId()) {
-                $this->info('Import with ID ' . $productImport->getId() . 'created successfully!');
+                $this->info('Import with ID ' . $productImport->getId() . ' created successfully!');
             }
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -604,8 +605,8 @@ class TestSdk extends Command
             $this->stopMessage();
             return 0;
         }
-        */
 
+        dd('die');
 
         /*
         $this->startMessage('Request data of newly created import...');
@@ -901,8 +902,7 @@ class TestSdk extends Command
      */
     public function stopMessage(): int
     {
-        $this->error('Testing stopped!');
-        dd();
+        $this->error('Test failed...');
         return 0;
 
     }

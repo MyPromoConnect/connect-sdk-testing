@@ -9,4 +9,6 @@ return [
     'client_secret' => env('CONNECT_CLIENT_SECRET'),
 
     'shop_url' => env('CONNECT_SHOP_URL'),
+
+    'callback_url' => env('CALLBACK_URL'),
 ];
