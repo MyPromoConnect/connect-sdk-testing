@@ -85,24 +85,28 @@ class TestSdk extends Command
         $this->info('');
 
         # Test Design Module
-        $this->testDesignModule();
-        $this->info('');
+        #$this->testDesignModule();
+        #$this->info('');
 
         # Test Orders Module
-        $this->testOrdersModule();
-        $this->info('');
+        #$this->testOrdersModule();
+        #$this->info('');
+
+
 
         # Test products
-        $this->testProducts();
-        $this->info('');
+        #$this->testProducts();
+        #$this->info('');
 
         # Test product export
-        $this->testProductExport();
-        $this->info('');
+        #$this->testProductExport();
+        #$this->info('');
 
         # Test product import
         $this->testProductImport();
         $this->info('');
+
+        dd('stop here');
 
         # Test configuratior
         $this->testProductConfigurator();
@@ -404,8 +408,6 @@ class TestSdk extends Command
         // CO-1601 not working properly...
         $order->setInvoice($recipientAddress);
 
-        dd('stop here');
-
         # Optional parameters
         $order->setFakePreflight(true);
         $order->setFakeShipment(true);
@@ -426,13 +428,28 @@ class TestSdk extends Command
 
         dd('go on writing tests - add items - submit order - get order etc.');
 
-        $this->info('Create an item');
 
-        $orderItem = new $orderItem->setQuantity(35);
-        \MyPromo\Connect\SDK\Models\OrderItem();
+        $this->info('Add order item with design');
+
+        $orderItem = new \MyPromo\Connect\SDK\Models\OrderItem();
+        $orderItem->setOrderId($order->getId());
+        $orderItem->setQuantity(35);
+        $orderItem->setReference('your-reference');
+        $orderItem->setComment('comment for order item here');
+
+        $orderItem->setDesigns($design);
+
+
+        $design->getId();
+
+
+
+        $this->info('Add order item with file');
+
+        $orderItem = new \MyPromo\Connect\SDK\Models\OrderItem();
+        $orderItem->setOrderId($order->getId());
         $orderItem->setReference('your-reference');
         $orderItem->setQuantity(35);
-        $orderItem->setOrderId(1);
         $orderItem->setSku('product-sku');
         $orderItem->setComment('comment for order item here');
 
@@ -552,7 +569,7 @@ class TestSdk extends Command
 
         $productExport->setTempletaId(null);
         $productExport->setTempletaKey('prices');
-        $productExport->setFormat('xslx');
+        $productExport->setFormat('xlsx');
 
         $productExportFilterOptions = new \MyPromo\Connect\SDK\Helpers\ProductExportFilterOptions();
         $productExportFilterOptions->setCategoryId(null);
@@ -711,10 +728,12 @@ class TestSdk extends Command
         $productImport->setDateExecute(null);
 
         $productImportInput = new \MyPromo\Connect\SDK\Helpers\ProductImportInput();
-        $productImportInput->setUrl('https://downloads.test.mypromo.com/feeds/Merchant-Prices.xlsx');
 
-        //$productImportInput->setFormat('xlsx');
-        $productImportInput->setFormat('xslx'); // TODO: BUG https://mypromo.atlassian.net/browse/CO-2302
+        //$productImportInput->setUrl('https://downloads.test.mypromo.com/feeds/Merchant-Prices.xlsx');
+        $productImportInput->setUrl('https://mypromo-shopify-dev.s3.eu-central-1.amazonaws.com/1651047033.xlsx?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYOR5ZFDEHKX74RD%2F20220427%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20220427T081034Z&X-Amz-SignedHeaders=host&X-Amz-Expires=604800&X-Amz-Signature=9ad5635d5f2b842d96af495d69e93c286cc3b460f45f5ce6ea953b38b93f5e68');
+
+
+        $productImportInput->setFormat('xlsx');
 
         $productImport->setInput($productImportInput);
 
