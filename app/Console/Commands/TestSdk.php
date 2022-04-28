@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use MyPromo\Connect\SDK\Exceptions\ApiRequestException;
 use MyPromo\Connect\SDK\Exceptions\ApiResponseException;
 use MyPromo\Connect\SDK\Exceptions\InputValidationException;
+use MyPromo\Connect\SDK\Helpers\ProductVariantOptions;
 use MyPromo\Connect\SDK\Repositories\Orders\OrderRepository;
 use MyPromo\Connect\SDK\Models\Design;
 use MyPromo\Connect\SDK\Repositories\Designs\DesignRepository;
@@ -85,12 +86,12 @@ class TestSdk extends Command
         $this->info('');
 
         # Test Design Module
-        #$this->testDesignModule();
-        #$this->info('');
+        $this->testDesignModule();
+        $this->info('');
 
         # Test Orders Module
-        #$this->testOrdersModule();
-        #$this->info('');
+        $this->testOrdersModule();
+        $this->info('');
 
 
         # Test products
@@ -98,8 +99,8 @@ class TestSdk extends Command
         $this->info('');
 
         # Test product export
-        #$this->testProductExport();
-        #$this->info('');
+        $this->testProductExport();
+        $this->info('');
 
         # Test product import
         $this->testProductImport();
@@ -772,6 +773,7 @@ class TestSdk extends Command
 
         $this->testDetail('get all products');
         $productsOptions = new \MyPromo\Connect\SDK\Helpers\ProductOptions();
+        $productsOptions->setFrom(1);
         $productsOptions->setPage(1);
         $productsOptions->setPerPage(5);
         $productsOptions->setPagination(false);
@@ -782,6 +784,7 @@ class TestSdk extends Command
         $productsOptions->setSearch(null);
         $productsOptions->setLang("DE");
         $productsOptions->setIncludeVariants(true);
+
 
         try {
             $productsResponse = $productsRepositoryMerchant->all($productsOptions);
@@ -796,19 +799,21 @@ class TestSdk extends Command
             return 0;
         }
 
-        dd('product search');
-
 
         $this->testDetail('get data of a single product');
-
-        // TODO options / filters !!
 
         if (!empty($productsResponse['data'])) {
             $this->info('Getting first product of previous result');
             $productId = $productsResponse['data'][0]['id'];
 
+            // TODO - needs to get own helper object...
+            $this->warn('Product Options for get by id needs to get own helper object');
+            $productsOptions = new \MyPromo\Connect\SDK\Helpers\ProductOptions();
+            $productsOptions->setLang("DE");
+            $productsOptions->setIncludeVariants(true);
+
             try {
-                $productResponseSingleObj = $productsRepositoryMerchant->find($productId);
+                $productResponseSingleObj = $productsRepositoryMerchant->find($productId, $productsOptions);
                 $this->info(print_r($productResponseSingleObj, true));
             } catch (ApiResponseException | InputValidationException $e) {
                 $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -824,7 +829,53 @@ class TestSdk extends Command
             $this->info('Unable to perform test, cause there are no products.');
         }
 
-        dd('singe product');
+
+        $this->testDetail('get variants of a product');
+
+        if (!empty($productsResponse['data'][0]['variants']['id'])) {
+            $this->info('Getting variants of product of previous result');
+            $productVariantId = $productsResponse['data'][0]['variants']['id'];
+
+            $productVariantOptions = new \MyPromo\Connect\SDK\Helpers\ProductVariantOptions();
+            $productVariantOptions->setFrom(1);
+            $productVariantOptions->setPage(1);
+            $productVariantOptions->setPerPage(5);
+            $productVariantOptions->setPagination(false);
+            $productVariantOptions->setLang("DE");
+            $productVariantOptions->setId($productVariantId);
+            $productVariantOptions->setSku(null);
+            $productVariantOptions->setReference(null);
+
+            try {
+                $productResponseSingleObj = $productsRepositoryMerchant->getVariants($productVariantOptions);
+                $this->info(print_r($productResponseSingleObj, true));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                return 0;
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+        } else {
+            $this->info('Unable to perform test, cause there are no variants in product given.');
+        }
+
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->error('variants - not working cause include_variants filter is not working in previous request');
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
+
+        // TODO - get a single variant
+        $this->testDetail('get variants of a product');
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->error('TODO');
+        // TODO - build request
+        // TODO - need own helper object for filters
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
 
         $this->testDetail('get prices for client type merchant');
 
