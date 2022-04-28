@@ -95,19 +95,20 @@ class TestSdk extends Command
         #$this->info('');
 
         # Test product import
-        $this->testProductImport();
-        $this->info('');
-
-        dd('stop');
-
+        #$this->testProductImport();
+        #$this->info('');
 
         # Test configuratior
-        $this->testProductConfigurator();
-        $this->info('');
+        #$this->testProductConfigurator();
+        #$this->info('');
+
+
 
         # Test production
         $this->testProduction();
         $this->info('');
+
+        dd('stop');
 
         # Test Miscellaneous
         $this->testMiscellaneous();
