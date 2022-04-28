@@ -93,10 +93,9 @@ class TestSdk extends Command
         #$this->info('');
 
 
-
         # Test products
-        #$this->testProducts();
-        #$this->info('');
+        $this->testProducts();
+        $this->info('');
 
         # Test product export
         #$this->testProductExport();
@@ -106,7 +105,6 @@ class TestSdk extends Command
         $this->testProductImport();
         $this->info('');
 
-        dd('stop here');
 
         # Test configuratior
         $this->testProductConfigurator();
@@ -443,7 +441,6 @@ class TestSdk extends Command
         $design->getId();
 
 
-
         $this->info('Add order item with file');
 
         $orderItem = new \MyPromo\Connect\SDK\Models\OrderItem();
@@ -767,9 +764,10 @@ class TestSdk extends Command
      */
     public function testProducts()
     {
-        $this->startMessage('TODO - testProducts');
+        $this->startMessage('test product routes');
 
-        $productsRepository = new \MyPromo\Connect\SDK\Repositories\Products\ProductRepository($this->clientMerchant);
+        $productsRepositoryMerchant = new \MyPromo\Connect\SDK\Repositories\Products\ProductRepository($this->clientMerchant);
+        $productsRepositoryFulfiller = new \MyPromo\Connect\SDK\Repositories\Products\ProductRepository($this->clientFulfiller);
 
 
         $this->testDetail('get all products');
@@ -779,8 +777,66 @@ class TestSdk extends Command
         $productsOptions->setPagination(false);
         $productsOptions->setShippingFrom('DE');
 
+        $productsOptions->setAvailable(true);
+        $productsOptions->setCurrency('EUR');
+        $productsOptions->setSearch(null);
+        $productsOptions->setLang("DE");
+        $productsOptions->setIncludeVariants(true);
+
         try {
-            $productsResponse = $productsRepository->all($productsOptions);
+            $productsResponse = $productsRepositoryMerchant->all($productsOptions);
+            $this->info(print_r($productsResponse, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+        dd('product search');
+
+
+        $this->testDetail('get data of a single product');
+
+        // TODO options / filters !!
+
+        if (!empty($productsResponse['data'])) {
+            $this->info('Getting first product of previous result');
+            $productId = $productsResponse['data'][0]['id'];
+
+            try {
+                $productResponseSingleObj = $productsRepositoryMerchant->find($productId);
+                $this->info(print_r($productResponseSingleObj, true));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                return 0;
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+        } else {
+            $this->info('Unable to perform test, cause there are no products.');
+        }
+
+        dd('singe product');
+
+        $this->testDetail('get prices for client type merchant');
+
+        $priceOptionsMerchant = new \MyPromo\Connect\SDK\Helpers\PriceOptionsMerchant();
+        $priceOptionsMerchant->setPage(1);
+        $priceOptionsMerchant->setPerPage(5);
+        $priceOptionsMerchant->setPagination(false);
+        $priceOptionsMerchant->setShippingFrom('DE');
+        //$priceOptionsMerchant->setSku('MP-F10005-C0000001');
+
+        try {
+            $productsResponse = $productsRepositoryMerchant->getPrices($priceOptionsMerchant);
             $this->info(print_r($productsResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -793,7 +849,76 @@ class TestSdk extends Command
         }
 
 
-        $this->testDetail('get seo overwrites');
+        $this->testDetail('get prices for client type fulfiller');
+
+        $priceOptionsFulfiller = new \MyPromo\Connect\SDK\Helpers\PriceOptionsFulfiller();
+        $priceOptionsFulfiller->setPage(1);
+        $priceOptionsFulfiller->setPerPage(5);
+        $priceOptionsFulfiller->setPagination(false);
+        //$priceOptionsFulfiller->setSkuFulfiller('MP-F10005-C0000001');
+
+        try {
+            $productsResponse = $productsRepositoryFulfiller->getPrices($priceOptionsFulfiller);
+            $this->info(print_r($productsResponse, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('get inventory for client type merchant');
+
+        $inventoryOptionsMerchant = new \MyPromo\Connect\SDK\Helpers\InventoryOptionsMerchant();
+        $inventoryOptionsMerchant->setPage(1);
+        $inventoryOptionsMerchant->setPerPage(5);
+        $inventoryOptionsMerchant->setPagination(false);
+        $inventoryOptionsMerchant->setShippingFrom('DE');
+        //$inventoryOptionsMerchant->setSku('MP-F10005-C0000001');
+
+
+        try {
+            $productsResponse = $productsRepositoryMerchant->getInventory($inventoryOptionsMerchant);
+            $this->info(print_r($productsResponse, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('get inventory for client type fulfiller');
+
+        $inventoryOptionsFulfiller = new \MyPromo\Connect\SDK\Helpers\InventoryOptionsFulfiller();
+        $inventoryOptionsFulfiller->setPage(1);
+        $inventoryOptionsFulfiller->setPerPage(5);
+        $inventoryOptionsFulfiller->setPagination(false);
+        //$inventoryOptionsMerchant->setSkuFulfiller('MP-F10005-C0000001');
+
+
+        try {
+            $productsResponse = $productsRepositoryFulfiller->getInventory($inventoryOptionsFulfiller);
+            $this->info(print_r($productsResponse, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('get seo overwrites for client type merchant');
 
         $seoOptions = new \MyPromo\Connect\SDK\Helpers\SeoOptions();
         $seoOptions->setPage(1);
@@ -802,7 +927,7 @@ class TestSdk extends Command
         //$seoOptions->setSku('MP-F10005-C0000001');
 
         try {
-            $productsResponse = $productsRepository->getSeo($seoOptions);
+            $productsResponse = $productsRepositoryMerchant->getSeo($seoOptions);
             $this->info(print_r($productsResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -815,7 +940,7 @@ class TestSdk extends Command
         }
 
 
-        $this->error('Some more tests have to be added here !!!');
+        $this->error('Add PATCH methods here as well !!!');
 
     }
 
