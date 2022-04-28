@@ -77,15 +77,15 @@ class TestSdk extends Command
         $this->info('');
 
         # Test Design Module
-        $this->testDesignModule();
-        $this->info('');
-        dd('end');
+        #$this->testDesignModule();
+        #$this->info('');
 
 
         # Test Orders Module
-        #$this->testOrdersModule();
-        #$this->info('');
+        $this->testOrdersModule();
+        $this->info('');
 
+        dd('stop');
 
         # Test products
         #$this->testProducts();
@@ -288,6 +288,7 @@ class TestSdk extends Command
         $design->setCancelUrl('https://yourshop.com/product/TPD123LD02LAXALOP/design/{DESIGNID}/user/{USERHASH}');
         $design->setSku('MP-F10005-C0000001');
         $design->setIntent('customize');
+        $design->setQuantity(10);
 
         try {
             $this->info('Create a design with the design user');
@@ -362,10 +363,14 @@ class TestSdk extends Command
         //$order->setExport($exportAddress);
         //$order->setInvoice($invoiceAddress);
 
+        // CO-1601 not working properly...
+        $order->setInvoice($recipientAddress);
+
+        dd('stop here');
+
         # Optional parameters
         $order->setFakePreflight(true);
         $order->setFakeShipment(true);
-
 
         try {
             $this->info('Sending order');
@@ -381,11 +386,11 @@ class TestSdk extends Command
             return 0;
         }
 
-        dd('stop here');
+        dd('go on writing tests - add items - submit order - get order etc.');
 
         $this->info('Create an item');
 
-        $orderItem = new \MyPromo\Connect\SDK\Models\OrderItem();
+        $orderItem = new $orderItem->setQuantity(35);\MyPromo\Connect\SDK\Models\OrderItem();
         $orderItem->setReference('your-reference');
         $orderItem->setQuantity(35);
         $orderItem->setOrderId(1);
