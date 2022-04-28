@@ -42,9 +42,14 @@ class TestSdk extends Command
     public $clientService;
 
     /**
-     * @var CLient
+     * @var ClientMerchant
      */
-    public $client;
+    public $clientMerchant;
+
+    /**
+     * @var ClientFulfiller
+     */
+    public $clientFulfiller;
 
     /**
      * Create a new command instance.
@@ -73,42 +78,39 @@ class TestSdk extends Command
         # Start Testing
 
         # Test Connection
-        $this->makeConnectionWithClient();
+        $this->makeConnectionWithMerchantClient();
+        $this->info('');
+
+        $this->makeConnectionWithFulfillerClient();
         $this->info('');
 
         # Test Design Module
-        #$this->testDesignModule();
-        #$this->info('');
-
+        $this->testDesignModule();
+        $this->info('');
 
         # Test Orders Module
-        #$this->testOrdersModule();
-        #$this->info('');
-
+        $this->testOrdersModule();
+        $this->info('');
 
         # Test products
-        #$this->testProducts();
-        #$this->info('');
+        $this->testProducts();
+        $this->info('');
 
         # Test product export
-        #$this->testProductExport();
-        #$this->info('');
+        $this->testProductExport();
+        $this->info('');
 
         # Test product import
-        #$this->testProductImport();
-        #$this->info('');
+        $this->testProductImport();
+        $this->info('');
 
         # Test configuratior
-        #$this->testProductConfigurator();
-        #$this->info('');
-
-
+        $this->testProductConfigurator();
+        $this->info('');
 
         # Test production
         $this->testProduction();
         $this->info('');
-
-        dd('stop');
 
         # Test Miscellaneous
         $this->testMiscellaneous();
@@ -121,16 +123,16 @@ class TestSdk extends Command
     /**
      * This method will test and return connection of client with endpoint
      */
-    public function makeConnectionWithClient()
+    public function makeConnectionWithMerchantClient()
     {
-        $this->startMessage("Build client connection. This module will test and create connection with ' . $this->connectEndPointUrl . '");
-        $clientId = config('connect.client_id');
-        $clientSecret = config('connect.client_secret');
+        $this->startMessage("Build client connection for Merchant. This module will test and create connection with ' . $this->connectEndPointUrl . '");
+        $clientId = config('connect.client_merchant_id');
+        $clientSecret = config('connect.client_merchant_secret');
 
         try {
 
-            $this->client = $this->clientService->connect($clientId, $clientSecret);
-            $status = $this->client->status();
+            $this->clientMerchant = $this->clientService->connect($clientId, $clientSecret);
+            $status = $this->clientMerchant->status();
 
             if ($status['message'] !== 'OK') {
                 $this->error('Connection failed!');
@@ -153,13 +155,47 @@ class TestSdk extends Command
         $this->info('Client connection testing finished!');
     }
 
+
+    public function makeConnectionWithFulfillerClient()
+    {
+        $this->startMessage("Build client connection for Fulfiller. This module will test and create connection with ' . $this->connectEndPointUrl . '");
+        $clientId = config('connect.client_fulfiller_id');
+        $clientSecret = config('connect.client_fulfiller_secret');
+
+        try {
+
+            $this->clientFulfiller = $this->clientService->connect($clientId, $clientSecret);
+            $status = $this->clientFulfiller->status();
+
+            if ($status['message'] !== 'OK') {
+                $this->error('Connection failed!');
+                return 0;
+            }
+
+            $this->info('Connection created successfully!');
+
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->info('Client connection testing finished!');
+    }
+
+
     /**
      * This method will test design API/Module of SDK
      */
     public function testDesignModule()
     {
         $this->startMessage('Design module testing start......');
-        $designRepository = new DesignRepository($this->client);
+        $designRepository = new DesignRepository($this->clientMerchant);
 
         $design = new Design();
         $design->setEditorUserHash(md5('hashing_string'));
@@ -262,7 +298,7 @@ class TestSdk extends Command
 
         $this->info('Create a new design');
 
-        $designRepository = new DesignRepository($this->client);
+        $designRepository = new DesignRepository($this->clientMerchant);
 
         $design = new Design();
 
@@ -323,7 +359,7 @@ class TestSdk extends Command
 
         $this->info('Create an order');
 
-        $orderRepository = new OrderRepository($this->client);
+        $orderRepository = new OrderRepository($this->clientMerchant);
 
         $recipientAddress = new \MyPromo\Connect\SDK\Models\Address();
         $recipientAddress->setAddressId(null);
@@ -417,7 +453,7 @@ class TestSdk extends Command
     public function testProductExport()
     {
         $this->startMessage('Product Export Module testing...');
-        $requestExportRepository = new \MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductExportRepository($this->client);
+        $requestExportRepository = new \MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductExportRepository($this->clientMerchant);
 
 
         $this->testDetail('Requesting new export...');
@@ -562,7 +598,7 @@ class TestSdk extends Command
     public function testProductImport()
     {
         $this->startMessage('Product Import Module testing...');
-        $requestImportRepository = new \MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductImportRepository($this->client);
+        $requestImportRepository = new \MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductImportRepository($this->clientMerchant);
 
 
         $this->testDetail('Requesting new import...');
@@ -716,7 +752,7 @@ class TestSdk extends Command
     {
         $this->startMessage('TODO - testProducts');
 
-        $productsRepository = new \MyPromo\Connect\SDK\Repositories\Products\ProductRepository($this->client);
+        $productsRepository = new \MyPromo\Connect\SDK\Repositories\Products\ProductRepository($this->clientMerchant);
 
 
         $this->testDetail('get all products');
@@ -783,9 +819,121 @@ class TestSdk extends Command
      */
     public function testProduction()
     {
-        // TODO
-        $this->startMessage('TODO - testProduction');
+        $this->startMessage('testProduction');
+
+        $this->testDetail('Get all production orders');
+        $productionRepository = new \MyPromo\Connect\SDK\Repositories\ProductionOrders\ProductionOrderRepository($this->clientFulfiller);
+
+        $productionOrderOptions = new \MyPromo\Connect\SDK\Helpers\ProductionOrderOptions();
+        $productionOrderOptions->setFrom(1);
+        $productionOrderOptions->setPage(1); // get data from this page number
+        $productionOrderOptions->setPerPage(5);
+
+        #$productionOrderOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
+        #$productionOrderOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
+        #$productionOrderOptions->setUpdatedFrom(new \DateTime(date('Y-m-d H:i:s')));
+        #$productionOrderOptions->setUpdatedTo(new \DateTime(date('Y-m-d H:i:s')));
+
+        try {
+            $productionOrderResponse = $productionRepository->all($productionOrderOptions);
+            $this->info(print_r($productionOrderResponse, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Get a single production order');
+        if (!empty($productionOrderResponse['data'])) {
+            $this->info('Getting first production order of previous result');
+            $productionOrderId = $productionOrderResponse['data'][0]['id'];
+
+            try {
+                $productionOrderResponseSingleObj = $productionRepository->find($productionOrderId);
+                $this->info(print_r($productionOrderResponseSingleObj, true));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                return 0;
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+        } else {
+            $this->info('Unable to perform test, cause there are no production orders.');
+        }
+
+        $this->testDetail('Get a generic label');
+        if (!empty($productionOrderResponse['data'])) {
+            $this->info('Get a generic label for the first production order of previous result');
+            $productionOrderId = $productionOrderResponse['data'][0]['id'];
+
+            try {
+                $productionOrderResponseGenericLabel = $productionRepository->genericLabel($productionOrderId);
+                $this->info(print_r($productionOrderResponseGenericLabel, true));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                // return 0; // TODO: just available if configured for a client of type merchant the order is coming from...
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+        }
+
+
+        $this->testDetail('Add a shipment');
+        if (!empty($productionOrderResponse['data'])) {
+            $this->info('Add a shipment to the first production order of previous result');
+            $productionOrderId = $productionOrderResponse['data'][0]['id'];
+
+            $shipment = new \MyPromo\Connect\SDK\Models\Shipment();
+
+            $shipment->setCarrier('UPS');
+            $shipment->setTrackingId('132415XYZ');
+
+            $shipment->setHeight('30');
+            $shipment->setWidth('45');
+            $shipment->setDepth('20');
+            $shipment->setWeight('10000');
+            /*
+            $shipment->setProductionOrderItems([
+                ['id' => 1, 'quantity' => 5],
+                ['id' => 2, 'quantity' => 10]
+                // ........
+            ]);
+            */
+
+            //$shipment->setForce(true);
+
+            try {
+                $productionOrderResponseAddShipment = $productionRepository->addShipment($productionOrderId, $shipment);
+                $this->info(print_r($productionOrderResponseAddShipment, true));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                //return 0; - TODO if failed we see that as ok for now...
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+
+        } else {
+            $this->info('Unable to perform test, cause there are no production orders.');
+        }
+
     }
+
 
     /*
      * testMiscellaneous
@@ -795,7 +943,7 @@ class TestSdk extends Command
         $this->startMessage('testMiscellaneous');
 
         $this->testDetail('get api status');
-        $generalRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\GeneralRepository($this->client);
+        $generalRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\GeneralRepository($this->clientMerchant);
 
         try {
             $apiStatusResponse = $generalRepository->apiStatus();
@@ -838,7 +986,7 @@ class TestSdk extends Command
 
 
         $this->testDetail('get carriers');
-        $carrierRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\CarrierRepository($this->client);
+        $carrierRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\CarrierRepository($this->clientMerchant);
 
         $carrierOptions = new \MyPromo\Connect\SDK\Helpers\CarrierOptions();
         $carrierOptions->setPage(1);
@@ -860,7 +1008,7 @@ class TestSdk extends Command
 
 
         $this->testDetail('get countries');
-        $countryRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\CountryRepository($this->client);
+        $countryRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\CountryRepository($this->clientMerchant);
 
         $countryOptions = new \MyPromo\Connect\SDK\Helpers\CountryOptions();
         $countryOptions->setPage(1);
@@ -882,7 +1030,7 @@ class TestSdk extends Command
 
 
         $this->testDetail('get locales');
-        $localeRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\LocaleRepository($this->client);
+        $localeRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\LocaleRepository($this->clientMerchant);
 
         $localeOptions = new \MyPromo\Connect\SDK\Helpers\LocaleOptions();
         $localeOptions->setPage(1);
@@ -904,7 +1052,7 @@ class TestSdk extends Command
 
 
         $this->testDetail('get states');
-        $stateRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\StateRepository($this->client);
+        $stateRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\StateRepository($this->clientMerchant);
 
         $stateOptions = new \MyPromo\Connect\SDK\Helpers\StateOptions();
         $stateOptions->setPage(1);
@@ -926,7 +1074,7 @@ class TestSdk extends Command
 
 
         $this->testDetail('get timezones');
-        $timeZonesRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\TimezoneRepository($this->client);
+        $timeZonesRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\TimezoneRepository($this->clientMerchant);
 
         $timeZonesOptions = new \MyPromo\Connect\SDK\Helpers\TimezoneOptions();
         $timeZonesOptions->setPage(1);
