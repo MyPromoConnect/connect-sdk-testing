@@ -85,6 +85,23 @@ class TestSdk extends Command
         $this->makeConnectionWithFulfillerClient();
         $this->info('');
 
+
+        // TODO
+        # Test Client Settings
+        $this->testClientSettings();
+        $this->info('');
+
+        // TODO
+        # Test Client Connectors
+        $this->testClientConnectors();
+        $this->info('');
+
+        // TODO
+        # Test Client Jobs
+        $this->testClientJobs();
+        $this->info('');
+
+
         # Test Design Module
         $this->testDesignModule();
         $this->info('');
@@ -92,7 +109,6 @@ class TestSdk extends Command
         # Test Orders Module
         $this->testOrdersModule();
         $this->info('');
-
 
         # Test products
         $this->testProducts();
@@ -105,7 +121,6 @@ class TestSdk extends Command
         # Test product import
         $this->testProductImport();
         $this->info('');
-
 
         # Test configuratior
         $this->testProductConfigurator();
@@ -189,6 +204,44 @@ class TestSdk extends Command
 
 
         $this->info('Client connection testing finished!');
+    }
+
+
+    /*
+     * testClientSettings
+     */
+    public function testClientSettings()
+    {
+        $this->startMessage('TODO - testClientSettings');
+
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->error('Could not find any repository !!!');
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    }
+
+
+    /*
+     * testClientConnectors
+     */
+    public function testClientConnectors()
+    {
+        $this->startMessage('TODO - testClientConnectors');
+
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->error('Could not find any repository !!!');
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    }
+
+    /*
+     * testClientJobs
+     */
+    public function testClientJobs()
+    {
+        $this->startMessage('TODO - testClientJobs');
+
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->error('Could not find any repository !!!');
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
     }
 
 
@@ -1003,7 +1056,9 @@ class TestSdk extends Command
     {
         $this->startMessage('TODO - testProductConfigurator');
 
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
         $this->error('Could not find any repository for the configurator routes !!!');
+        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
     }
 
 
