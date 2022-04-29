@@ -106,7 +106,7 @@ class TestSdk extends Command
         $this->testClientConnectors();
         $this->info('');
 
-        dd('bla');
+        //dd('bla');
 
 
         // TODO - no tests written yet
