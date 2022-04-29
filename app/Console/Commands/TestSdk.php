@@ -85,31 +85,31 @@ class TestSdk extends Command
         $this->makeConnectionWithFulfillerClient();
         $this->info('');
 
+        /*
+                // TODO
+                # Test Client Settings
+                $this->testClientSettings();
+                $this->info('');
 
-        // TODO
-        # Test Client Settings
-        $this->testClientSettings();
-        $this->info('');
+                // TODO
+                # Test Client Connectors
+                $this->testClientConnectors();
+                $this->info('');
 
-        // TODO
-        # Test Client Connectors
-        $this->testClientConnectors();
-        $this->info('');
-
-        // TODO
-        # Test Client Jobs
-        $this->testClientJobs();
-        $this->info('');
+                // TODO
+                # Test Client Jobs
+                $this->testClientJobs();
+                $this->info('');
 
 
-        # Test Design Module
-        $this->testDesignModule();
-        $this->info('');
+                # Test Design Module
+                $this->testDesignModule();
+                $this->info('');
 
-        # Test Orders Module
-        $this->testOrdersModule();
-        $this->info('');
-
+                # Test Orders Module
+                $this->testOrdersModule();
+                $this->info('');
+        */
         # Test products
         $this->testProducts();
         $this->info('');
@@ -122,6 +122,7 @@ class TestSdk extends Command
         $this->testProductImport();
         $this->info('');
 
+        // TODO
         # Test configuratior
         $this->testProductConfigurator();
         $this->info('');
@@ -402,7 +403,7 @@ class TestSdk extends Command
         try {
             $this->info('Submit the design');
             $designResponse = $designRepository->submit($design->getId());
-            $this->info(print_r($designResponse, 1));
+            $this->printApiResponse(print_r($designResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -467,7 +468,7 @@ class TestSdk extends Command
         try {
             $this->info('Sending order');
             $orderResponse = $orderRepository->create($order);
-            $this->info(print_r($orderResponse, 1));
+            $this->printApiResponse(print_r($orderResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -532,7 +533,7 @@ class TestSdk extends Command
 
         try {
             $requestExportByIdResponse = $requestExportRepository->find($productExport->getId());
-            $this->info(print_r($requestExportByIdResponse, 1));
+            $this->printApiResponse(print_r($requestExportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -558,7 +559,7 @@ class TestSdk extends Command
 
             $requestExportAllResponse = $requestExportRepository->all($productExportOptions);
 
-            $this->info(print_r($requestExportAllResponse, 1));
+            $this->printApiResponse(print_r($requestExportAllResponse, 1));
 
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -576,7 +577,7 @@ class TestSdk extends Command
         try {
             $this->info('Trying to cancel...');
             $requestExportByIdResponse = $requestExportRepository->cancelExport($productExport->getId());
-            $this->info(print_r($requestExportByIdResponse, 1));
+            $this->printApiResponse(print_r($requestExportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -593,7 +594,7 @@ class TestSdk extends Command
         try {
             $this->info('Trying to delete...');
             $requestExportByIdResponse = $requestExportRepository->deleteExport($productExport->getId());
-            $this->info(print_r($requestExportByIdResponse, 1));
+            $this->printApiResponse(print_r($requestExportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -640,7 +641,7 @@ class TestSdk extends Command
             $this->info('Sending Export Request');
 
             $requestExportResponse = $requestExportRepository->requestExport($productExport);
-            $this->info(print_r($requestExportResponse, 1));
+            $this->printApiResponse(print_r($requestExportResponse, 1));
 
             if ($productExport->getId()) {
                 $this->info('Export with ID ' . $productExport->getId() . ' created successfully!');
@@ -677,7 +678,7 @@ class TestSdk extends Command
 
         try {
             $requestImportByIdResponse = $requestImportRepository->find($productImport->getId());
-            $this->info(print_r($requestImportByIdResponse, 1));
+            $this->printApiResponse(print_r($requestImportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -702,7 +703,7 @@ class TestSdk extends Command
 
             $requestImportAllResponse = $requestImportRepository->all($productImportOptions);
 
-            $this->info(print_r($requestImportAllResponse, 1));
+            $this->printApiResponse(print_r($requestImportAllResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -719,7 +720,7 @@ class TestSdk extends Command
         try {
             $this->info('Trying to cancel...');
             $requestImportByIdResponse = $requestImportRepository->cancelImport($productImport->getId());
-            $this->info(print_r($requestImportByIdResponse, 1));
+            $this->printApiResponse(print_r($requestImportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -736,7 +737,7 @@ class TestSdk extends Command
         try {
             $this->info('Trying to delete...');
             $requestImportByIdResponse = $requestImportRepository->deleteImport($productImport->getId());
-            $this->info(print_r($requestImportByIdResponse, 1));
+            $this->printApiResponse(print_r($requestImportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -753,7 +754,7 @@ class TestSdk extends Command
         try {
             $this->info('Trying to validate...');
             $requestImportByIdResponse = $requestImportRepository->validate($productImport->getId());
-            $this->info(print_r($requestImportByIdResponse, 1));
+            $this->printApiResponse(print_r($requestImportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -794,7 +795,7 @@ class TestSdk extends Command
             $this->info('Sending Import Request');
 
             $requestImportResponse = $requestImportRepository->requestImport($productImport);
-            $this->info(print_r($requestImportResponse, 1));
+            $this->printApiResponse(print_r($requestImportResponse, 1));
 
             if ($productImport->getId()) {
                 $this->info('Import with ID ' . $productImport->getId() . ' created successfully!');
@@ -838,10 +839,9 @@ class TestSdk extends Command
         $productsOptions->setLang("DE");
         $productsOptions->setIncludeVariants(true);
 
-
         try {
             $productsResponse = $productsRepositoryMerchant->all($productsOptions);
-            $this->info(print_r($productsResponse, true));
+            $this->printApiResponse(print_r($productsResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -851,7 +851,6 @@ class TestSdk extends Command
             $this->stopMessage();
             return 0;
         }
-
 
         $this->testDetail('get data of a single product');
 
@@ -867,7 +866,7 @@ class TestSdk extends Command
 
             try {
                 $productResponseSingleObj = $productsRepositoryMerchant->find($productId, $productsOptions);
-                $this->info(print_r($productResponseSingleObj, true));
+                $this->printApiResponse(print_r($productResponseSingleObj, true));
             } catch (ApiResponseException | InputValidationException $e) {
                 $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
                 $this->stopMessage();
@@ -901,7 +900,7 @@ class TestSdk extends Command
 
             try {
                 $productResponseSingleObj = $productsRepositoryMerchant->getVariants($productVariantOptions);
-                $this->info(print_r($productResponseSingleObj, true));
+                $this->printApiResponse(print_r($productResponseSingleObj, true));
             } catch (ApiResponseException | InputValidationException $e) {
                 $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
                 $this->stopMessage();
@@ -941,7 +940,7 @@ class TestSdk extends Command
 
         try {
             $productsResponse = $productsRepositoryMerchant->getPrices($priceOptionsMerchant);
-            $this->info(print_r($productsResponse, true));
+            $this->printApiResponse(print_r($productsResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -963,7 +962,7 @@ class TestSdk extends Command
 
         try {
             $productsResponse = $productsRepositoryFulfiller->getPrices($priceOptionsFulfiller);
-            $this->info(print_r($productsResponse, true));
+            $this->printApiResponse(print_r($productsResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -987,7 +986,7 @@ class TestSdk extends Command
 
         try {
             $productsResponse = $productsRepositoryMerchant->getInventory($inventoryOptionsMerchant);
-            $this->info(print_r($productsResponse, true));
+            $this->printApiResponse(print_r($productsResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1010,7 +1009,7 @@ class TestSdk extends Command
 
         try {
             $productsResponse = $productsRepositoryFulfiller->getInventory($inventoryOptionsFulfiller);
-            $this->info(print_r($productsResponse, true));
+            $this->printApiResponse(print_r($productsResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1032,7 +1031,7 @@ class TestSdk extends Command
 
         try {
             $productsResponse = $productsRepositoryMerchant->getSeo($seoOptions);
-            $this->info(print_r($productsResponse, true));
+            $this->printApiResponse(print_r($productsResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1084,7 +1083,7 @@ class TestSdk extends Command
 
         try {
             $productionOrderResponse = $productionRepository->all($productionOrderOptions);
-            $this->info(print_r($productionOrderResponse, true));
+            $this->printApiResponse(print_r($productionOrderResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1103,7 +1102,7 @@ class TestSdk extends Command
 
             try {
                 $productionOrderResponseSingleObj = $productionRepository->find($productionOrderId);
-                $this->info(print_r($productionOrderResponseSingleObj, true));
+                $this->printApiResponse(print_r($productionOrderResponseSingleObj, true));
             } catch (ApiResponseException | InputValidationException $e) {
                 $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
                 $this->stopMessage();
@@ -1125,7 +1124,7 @@ class TestSdk extends Command
 
             try {
                 $productionOrderResponseGenericLabel = $productionRepository->genericLabel($productionOrderId);
-                $this->info(print_r($productionOrderResponseGenericLabel, true));
+                $this->printApiResponse(print_r($productionOrderResponseGenericLabel, true));
             } catch (ApiResponseException | InputValidationException $e) {
                 $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
                 $this->stopMessage();
@@ -1164,7 +1163,7 @@ class TestSdk extends Command
 
             try {
                 $productionOrderResponseAddShipment = $productionRepository->addShipment($productionOrderId, $shipment);
-                $this->info(print_r($productionOrderResponseAddShipment, true));
+                $this->printApiResponse(print_r($productionOrderResponseAddShipment, true));
             } catch (ApiResponseException | InputValidationException $e) {
                 $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
                 $this->stopMessage();
@@ -1195,7 +1194,7 @@ class TestSdk extends Command
 
         try {
             $apiStatusResponse = $generalRepository->apiStatus();
-            $this->info(print_r($apiStatusResponse, true));
+            $this->printApiResponse(print_r($apiStatusResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1243,7 +1242,7 @@ class TestSdk extends Command
 
         try {
             $carrierResponse = $carrierRepository->all($carrierOptions);
-            $this->info(print_r($carrierResponse, true));
+            $this->printApiResponse(print_r($carrierResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1265,7 +1264,7 @@ class TestSdk extends Command
 
         try {
             $countryResponse = $countryRepository->all($countryOptions);
-            $this->info(print_r($countryResponse, true));
+            $this->printApiResponse(print_r($countryResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1287,7 +1286,7 @@ class TestSdk extends Command
 
         try {
             $localeResponse = $localeRepository->all($localeOptions);
-            $this->info(print_r($localeResponse, true));
+            $this->printApiResponse(print_r($localeResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1309,7 +1308,7 @@ class TestSdk extends Command
 
         try {
             $stateResponse = $stateRepository->all($stateOptions);
-            $this->info(print_r($stateResponse, true));
+            $this->printApiResponse(print_r($stateResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1331,7 +1330,7 @@ class TestSdk extends Command
 
         try {
             $timeZonesResponse = $timeZonesRepository->all($timeZonesOptions);
-            $this->info(print_r($timeZonesResponse, true));
+            $this->printApiResponse(print_r($timeZonesResponse, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -1364,6 +1363,14 @@ class TestSdk extends Command
         $this->info($title);
         $this->info('------------------------------------------------------------------------------------------------------------------------------------------------');
     }
+
+
+    public function printApiResponse($response)
+    {
+        $cropped_response = substr($response, 0, 100) . "... cropped...";
+        $this->info($cropped_response);
+    }
+
 
     /**
      * This method can be used to stop testing
