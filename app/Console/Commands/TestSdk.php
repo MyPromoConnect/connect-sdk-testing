@@ -9,6 +9,7 @@ use MyPromo\Connect\SDK\Exceptions\ApiRequestException;
 use MyPromo\Connect\SDK\Exceptions\ApiResponseException;
 use MyPromo\Connect\SDK\Exceptions\InputValidationException;
 use MyPromo\Connect\SDK\Helpers\ProductVariantOptions;
+use MyPromo\Connect\SDK\Repositories\Client\ClientConnectorRepository;
 use MyPromo\Connect\SDK\Repositories\Client\ClientSettingRepository;
 use MyPromo\Connect\SDK\Repositories\Orders\OrderRepository;
 use MyPromo\Connect\SDK\Models\Design;
@@ -86,19 +87,19 @@ class TestSdk extends Command
         $this->makeConnectionWithFulfillerClient();
         $this->info('');
 
+        /*
+                // TODO - DRAFT
+                // TODO - finish all api routes in this category and add tests
+                # Test General
+                $this->testGeneralRoutes();
+                $this->info('');
 
-        // TODO - DRAFT
-        // TODO - finish all api routes in this category and add tests
-        # Test General
-        $this->testGeneralRoutes();
-        $this->info('');
-
-        // TODO - WIP
-        // TODO - finish all api routes in this category and add tests
-        # Test Client Settings
-        $this->testClientSettings();
-        $this->info('');
-
+                // TODO - WIP
+                // TODO - finish all api routes in this category and add tests
+                # Test Client Settings
+                $this->testClientSettings();
+                $this->info('');
+        */
         // TODO
         # Test Client Connectors
         $this->testClientConnectors();
@@ -224,6 +225,19 @@ class TestSdk extends Command
 
 
     /*
+     * testGeneralRoutes
+     */
+    public function testGeneralRoutes()
+    {
+        $this->startMessage('TODO - testGeneralRoutes');
+
+        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->warn('Routes are in draft mode yet!!!');
+        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    }
+
+
+    /*
      * testClientSettings
      */
     public function testClientSettings()
@@ -320,28 +334,131 @@ class TestSdk extends Command
 
 
     /*
-     * testGeneralRoutes
-     */
-    public function testGeneralRoutes()
-    {
-        $this->startMessage('TODO - testGeneralRoutes');
-
-        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        $this->warn('Routes are in draft mode yet!!!');
-        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-    }
-
-
-    /*
      * testClientConnectors
      */
     public function testClientConnectors()
     {
-        $this->startMessage('TODO - testClientConnectors');
+        $this->startMessage('Client connectors test start......');
+        $clientConnectorRepositoryMerchant = new ClientConnectorRepository($this->clientMerchant);
+        $clientConnectorRepositoryFulfiller = new ClientConnectorRepository($this->clientFulfiller);
+
+
+        $this->testDetail('Get client connectors for merchant');
+
+        $clientConnectorOptions = new \MyPromo\Connect\SDK\Helpers\ClientConnectorOptions();
+        $clientConnectorOptions->setPage(1); // get data from this page number
+        $clientConnectorOptions->setPerPage(5);
+        $clientConnectorOptions->setPagination(false);
+        #$clientConnectorOptions->setConnectorId(12);
+        #$clientConnectorOptions->setConnectorKey('shopify');
+        #$clientConnectorOptions->setTarget('sales_channel');
+
+        try {
+            $clientConnectorsResponseMerchant = $clientConnectorRepositoryMerchant->all($clientConnectorOptions);
+            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Patch client connectors for merchant to shopify');
+
+        $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
+        //$clientConnector->setConnectorId(14);
+        $clientConnector->setConnectorKey('shopify');
+        $clientConnector->setTarget('sales_channel');
+
+        $shopifyConfigurations = new \MyPromo\Connect\SDK\Helpers\ConnectorConfigurationsShopify();
+        $shopifyConfigurations->setShopName('Shop Name' . ' - ' . date('Y-m-d H:i:s'));
+        $shopifyConfigurations->setToken('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' . ' - ' . date('Y-m-d H:i:s'));
+        $shopifyConfigurations->setShopUrl('mypromo-demo.myshopify.com' . ' - ' . date('Y-m-d H:i:s'));
+
+        $shopifyConfigurations->setSalePriceConfig('use_sales_price');
+        $shopifyConfigurations->setShopCurrency('EUR');
+        $shopifyConfigurations->setProductsLanguage('FR');
+        $shopifyConfigurations->setSyncProductSettings('normal');
+        $shopifyConfigurations->setCreateCollections(true);
+        $shopifyConfigurations->setUpdateImages(true);
+        $shopifyConfigurations->setUpdateProducts(true);
+        $shopifyConfigurations->setUpdateSeo(true);
+        $shopifyConfigurations->setRecreateDeletedCollection(true);
+        $shopifyConfigurations->setRecreateDeletedProducts(true);
+        $shopifyConfigurations->setAddNewProductsAutomatically(true); // new
+        $shopifyConfigurations->setUseMegaMenu(true); // new
+
+        // TODO - settings not saved correctly anymore! see CO-2314
+        // TODO - new settings added to sdk - after adding to api: test it!! see CO-2315
+
+        $clientConnector->setConfiguration($shopifyConfigurations);
+
+        $this->info(print_r($clientConnector->toArray(), true));
+
+
+        try {
+            $clientConnectorsResponseMerchant = $clientConnectorRepositoryMerchant->update($clientConnector);
+            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Patch client connectors for merchant to magento');
+
+        $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
+        //$clientConnector->setConnectorId(14);
+        $clientConnector->setConnectorKey('magento');
+        $clientConnector->setTarget('sales_channel');
+
+        $magentoConfigurations = new \MyPromo\Connect\SDK\Helpers\ConnectorConfigurationsMagento();
+        $magentoConfigurations->setInstanceUrl('url');
+        $magentoConfigurations->setApiUsername('username');
+        $magentoConfigurations->setApiPassword('password');
+        $magentoConfigurations->setWebsiteCode('XXXX');
+        $magentoConfigurations->setWebsiteCodeId(1);
+        $magentoConfigurations->setWebsiteCodeName('Website name');
+        $magentoConfigurations->setStoreCode('XXXXX');
+        $magentoConfigurations->setStoreCodeId(1);
+        $magentoConfigurations->setStoreCodeName('Store code');
+        $magentoConfigurations->setSyncProductsSettings('normal');
+        $magentoConfigurations->setSalesPriceConfig('use_sales_price');
+
+        $clientConnector->setConfiguration($magentoConfigurations);
+
+        $this->info(print_r($clientConnector->toArray(), true));
+
+
+        try {
+            $clientConnectorsResponseMerchant = $clientConnectorRepositoryMerchant->update($clientConnector);
+            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            // TODO - commented out and added error message - after fix the issue CO-2316 revert
+            $this->error('setting magento as connector is not working - CO-2316');
+            //return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
 
         $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        $this->error('Could not find any repository !!!');
+        $this->error('We just have helpers for magento and shopify - add configuration helpers for all other connectors !!!');
         $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
     }
 
     /*
@@ -1490,7 +1607,16 @@ class TestSdk extends Command
 
     public function printApiResponse($response, int $crop_length = 100)
     {
-        $cropped_response = substr($response, 0, $crop_length) . "\n >>> cropped response\n\n";
+        // TODO - move toggle to somewhere else
+        $crop = false;
+
+        if ($crop == true) {
+            $cropped_response = substr($response, 0, $crop_length) . "\n >>> cropped response\n\n";
+
+        } else {
+            $cropped_response = $response;
+        }
+
         $this->info($cropped_response);
     }
 
@@ -1498,7 +1624,8 @@ class TestSdk extends Command
     /**
      * This method can be used to stop testing
      */
-    public function stopMessage(): int
+    public
+    function stopMessage(): int
     {
         $this->error('Test failed...');
         return 0;
