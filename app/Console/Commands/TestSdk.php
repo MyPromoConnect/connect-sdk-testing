@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use GuzzleHttp\Client;
 use App\Services\ClientService;
 use Illuminate\Console\Command;
 use MyPromo\Connect\SDK\Exceptions\ApiRequestException;
@@ -87,20 +86,22 @@ class TestSdk extends Command
         $this->makeConnectionWithFulfillerClient();
         $this->info('');
 
-        /*
-                // TODO - DRAFT
-                // TODO - finish all api routes in this category and add tests
-                # Test General
-                $this->testGeneralRoutes();
-                $this->info('');
 
-                // TODO - WIP
-                // TODO - finish all api routes in this category and add tests
-                # Test Client Settings
-                $this->testClientSettings();
-                $this->info('');
-        */
-        // TODO
+        // TODO - DRAFT
+        // TODO - finish all api routes in this category and add tests
+        # Test General
+        $this->testGeneralRoutes();
+        $this->info('');
+
+        // TODO - WIP
+        // TODO - finish all api routes in this category and add tests
+        // TODO - contains api bugs
+        # Test Client Settings
+        $this->testClientSettings();
+        $this->info('');
+
+        // TODO - WIP
+        // TODO - contains api bugs
         # Test Client Connectors
         $this->testClientConnectors();
         $this->info('');
@@ -108,10 +109,11 @@ class TestSdk extends Command
         dd('bla');
 
 
-        // TODO
+        // TODO - no tests written yet
         # Test Client Jobs
         $this->testClientJobs();
         $this->info('');
+
 
         # Test Design Module
         $this->testDesignModule();
@@ -133,10 +135,12 @@ class TestSdk extends Command
         $this->testProductImport();
         $this->info('');
 
-        // TODO
+
+        // TODO - sdk does not support this routes yet
         # Test configuratior
         $this->testProductConfigurator();
         $this->info('');
+
 
         # Test production
         $this->testProduction();
