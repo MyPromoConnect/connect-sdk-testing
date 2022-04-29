@@ -9,6 +9,7 @@ use MyPromo\Connect\SDK\Exceptions\ApiRequestException;
 use MyPromo\Connect\SDK\Exceptions\ApiResponseException;
 use MyPromo\Connect\SDK\Exceptions\InputValidationException;
 use MyPromo\Connect\SDK\Helpers\ProductVariantOptions;
+use MyPromo\Connect\SDK\Repositories\Client\ClientSettingRepository;
 use MyPromo\Connect\SDK\Repositories\Orders\OrderRepository;
 use MyPromo\Connect\SDK\Models\Design;
 use MyPromo\Connect\SDK\Repositories\Designs\DesignRepository;
@@ -85,31 +86,40 @@ class TestSdk extends Command
         $this->makeConnectionWithFulfillerClient();
         $this->info('');
 
-        /*
-                // TODO
-                # Test Client Settings
-                $this->testClientSettings();
-                $this->info('');
 
-                // TODO
-                # Test Client Connectors
-                $this->testClientConnectors();
-                $this->info('');
+        // TODO - DRAFT
+        // TODO - finish all api routes in this category and add tests
+        # Test General
+        $this->testGeneralRoutes();
+        $this->info('');
 
-                // TODO
-                # Test Client Jobs
-                $this->testClientJobs();
-                $this->info('');
+        // TODO - WIP
+        // TODO - finish all api routes in this category and add tests
+        # Test Client Settings
+        $this->testClientSettings();
+        $this->info('');
+
+        // TODO
+        # Test Client Connectors
+        $this->testClientConnectors();
+        $this->info('');
+
+        dd('bla');
 
 
-                # Test Design Module
-                $this->testDesignModule();
-                $this->info('');
+        // TODO
+        # Test Client Jobs
+        $this->testClientJobs();
+        $this->info('');
 
-                # Test Orders Module
-                $this->testOrdersModule();
-                $this->info('');
-        */
+        # Test Design Module
+        $this->testDesignModule();
+        $this->info('');
+
+        # Test Orders Module
+        $this->testOrdersModule();
+        $this->info('');
+
         # Test products
         $this->testProducts();
         $this->info('');
@@ -135,6 +145,11 @@ class TestSdk extends Command
         $this->testMiscellaneous();
         $this->info('');
 
+        // TODO - DRAFT
+        // TODO - finish all api routes in this category and add tests
+        # Test admin routes
+        $this->testAdminRoutes();
+        $this->info('');
 
         return 0;
     }
@@ -213,11 +228,107 @@ class TestSdk extends Command
      */
     public function testClientSettings()
     {
-        $this->startMessage('TODO - testClientSettings');
+        $this->startMessage('Client settings test start......');
+        $clientSettingRepositoryMerchant = new ClientSettingRepository($this->clientMerchant);
+        $clientSettingRepositoryFulfiller = new ClientSettingRepository($this->clientFulfiller);
 
-        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        $this->error('Could not find any repository !!!');
-        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
+        $this->testDetail('Get client settings for merchant');
+
+        try {
+            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->getSettings();
+            $this->printApiResponse(print_r($clientSettingResponseMerchant, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Get client settings for fulfillers');
+
+        try {
+            $clientSettingResponseFulfiller = $clientSettingRepositoryFulfiller->getSettings();
+            $this->printApiResponse(print_r($clientSettingResponseFulfiller, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Patch client settings for merchant');
+
+        $clientSettingsMerchant = new \MyPromo\Connect\SDK\Models\ClientSettingMerchant();
+
+        $clientSettingsMerchant->setActivateNewFulfiller(true);
+        $clientSettingsMerchant->setActivateNewProducts(true);
+        $clientSettingsMerchant->setHasToSupplyCarrier(true);
+        $clientSettingsMerchant->setHasToSupplyTrackingCode(true);
+        $clientSettingsMerchant->setPriceResetLogic(1);
+        $clientSettingsMerchant->setAdjustMaxUpPercentage(0);
+        $clientSettingsMerchant->setAdjustMaxDownPercentage(0);
+        $clientSettingsMerchant->setSentToProductionDelay(1);
+
+
+        try {
+            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->update($clientSettingsMerchant);
+            $this->printApiResponse(print_r($clientSettingResponseMerchant, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            // TODO just commented out cause of an api issue - revert, when CO-2313 is done
+            #return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+
+        $this->testDetail('Patch client settings for fulfiller');
+
+        $clientSettingsFulfiller = new \MyPromo\Connect\SDK\Models\ClientSettingFulfiller();
+
+        $clientSettingsFulfiller->setHasToSupplyCarrier(true);
+        $clientSettingsFulfiller->setHasToSupplyTrackingCode(true);
+
+
+        try {
+            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->update($clientSettingsMerchant);
+            $this->printApiResponse(print_r($clientSettingResponseMerchant, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            // TODO just commented out cause of an api issue - revert, when CO-2313 is done
+            #return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
+    }
+
+
+    /*
+     * testGeneralRoutes
+     */
+    public function testGeneralRoutes()
+    {
+        $this->startMessage('TODO - testGeneralRoutes');
+
+        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->warn('Routes are in draft mode yet!!!');
+        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
     }
 
 
@@ -854,7 +965,7 @@ class TestSdk extends Command
 
         $this->testDetail('get data of a single product');
 
-        if (!empty($productsResponse['data'])) {
+        if (!empty($productsResponse['data'][0]['id'])) {
             $this->info('Getting first product of previous result');
             $productId = $productsResponse['data'][0]['id'];
 
@@ -1345,6 +1456,18 @@ class TestSdk extends Command
     }
 
 
+    /*
+     * testAdminRoutes
+     */
+    public function testAdminRoutes()
+    {
+        $this->startMessage('TODO - testAdminRoutes');
+
+        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->warn('Routes are in draft mode yet!!!');
+        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    }
+
     /**
      * Start testing of new modules (Show hiding)
      *
@@ -1365,9 +1488,9 @@ class TestSdk extends Command
     }
 
 
-    public function printApiResponse($response)
+    public function printApiResponse($response, int $crop_length = 100)
     {
-        $cropped_response = substr($response, 0, 100) . "... cropped...";
+        $cropped_response = substr($response, 0, $crop_length) . "\n >>> cropped response\n\n";
         $this->info($cropped_response);
     }
 
