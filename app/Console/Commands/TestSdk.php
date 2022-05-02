@@ -14,6 +14,7 @@ use MyPromo\Connect\SDK\Repositories\Jobs\ConnectorJobRepository;
 use MyPromo\Connect\SDK\Repositories\Orders\OrderRepository;
 use MyPromo\Connect\SDK\Models\Design;
 use MyPromo\Connect\SDK\Repositories\Designs\DesignRepository;
+use MyPromo\Connect\SDK\Repositories\Miscellaneous\GeneralRepository;
 
 class TestSdk extends Command
 {
@@ -45,12 +46,12 @@ class TestSdk extends Command
     public $clientService;
 
     /**
-     * @var ClientMerchant
+     * @var object
      */
     public $clientMerchant;
 
     /**
-     * @var ClientFulfiller
+     * @var object
      */
     public $clientFulfiller;
 
@@ -87,39 +88,38 @@ class TestSdk extends Command
         $this->makeConnectionWithFulfillerClient();
         $this->info('');
 
-        /*
-                // TODO - DRAFT
-                // TODO - finish all api routes in this category and add tests
-                # Test General
-                $this->testGeneralRoutes();
-                $this->info('');
 
-                // TODO - WIP
-                // TODO - finish all api routes in this category and add tests
-                // TODO - contains api bugs
-                # Test Client Settings
-                $this->testClientSettings();
-                $this->info('');
+        // TODO - DRAFT
+        // TODO - finish all api routes in this category and add tests
+        # Test General
+        $this->testGeneralRoutes();
+        $this->info('');
 
-                // TODO - WIP
-                // TODO - contains api bugs
-                # Test Client Connectors
-                $this->testClientConnectors();
-                $this->info('');
+        // TODO - WIP
+        // TODO - finish all api routes in this category and add tests
+        // TODO - contains api bugs
+        # Test Client Settings
+        $this->testClientSettings();
+        $this->info('');
 
-        */
+        // TODO - WIP
+        // TODO - contains api bugs
+        # Test Client Connectors
+        $this->testClientConnectors();
+        $this->info('');
 
-        // TODO - no tests written yet
+
+        // TODO - WIP
         # Test Client Jobs
         $this->testClientJobs();
         $this->info('');
 
-        dd('bla');
 
         # Test Design Module
         $this->testDesignModule();
         $this->info('');
 
+        // TODO check short url provided and add download tests (see implementation of downloadFile($url, $targetFile))
         # Test Orders Module
         $this->testOrdersModule();
         $this->info('');
@@ -132,9 +132,12 @@ class TestSdk extends Command
         $this->testProductExport();
         $this->info('');
 
+
         # Test product import
         $this->testProductImport();
         $this->info('');
+
+        #dd('bla');
 
 
         // TODO - sdk does not support this routes yet
@@ -143,6 +146,7 @@ class TestSdk extends Command
         $this->info('');
 
 
+        // TODO check short url provided and add download tests (see implementation of downloadFile($url, $targetFile))
         # Test production
         $this->testProduction();
         $this->info('');
@@ -299,7 +303,7 @@ class TestSdk extends Command
 
 
         try {
-            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->update($clientSettingsMerchant);
+            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->getSettings($clientSettingsMerchant);
             $this->printApiResponse(print_r($clientSettingResponseMerchant, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -322,7 +326,7 @@ class TestSdk extends Command
 
 
         try {
-            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->update($clientSettingsMerchant);
+            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->setSettings($clientSettingsMerchant);
             $this->printApiResponse(print_r($clientSettingResponseMerchant, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -492,7 +496,7 @@ class TestSdk extends Command
         $connectorJob->setCallback($callback);
 
 
-        // TODO - helpers for each job type???
+        // TODO - helpers for each job type!!!
 
         dd($connectorJob);
 
@@ -813,20 +817,18 @@ class TestSdk extends Command
 
         $this->testDetail('Request data of all exports...');
 
+        $productExportOptions = new \MyPromo\Connect\SDK\Helpers\ProductExportOptions();
+        $productExportOptions->setPage(1); // get data from this page number
+        $productExportOptions->setPerPage(5);
+        $productExportOptions->setPagination(false);
+        $productExportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
+        $productExportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
+
+        $this->info(print_r($productExportOptions->toArray(), 1));
+
         try {
-            $productExportOptions = new \MyPromo\Connect\SDK\Helpers\ProductExportOptions();
-            $productExportOptions->setPage(1); // get data from this page number
-            $productExportOptions->setPerPage(5);
-            $productExportOptions->setPagination(false);
-            $productExportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
-            $productExportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
-
-            $this->info(print_r($productExportOptions->toArray(), 1));
-
             $requestExportAllResponse = $requestExportRepository->all($productExportOptions);
-
             $this->printApiResponse(print_r($requestExportAllResponse, 1));
-
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -838,11 +840,22 @@ class TestSdk extends Command
         }
 
 
+        // TODO - CO-2321
+        // TODO - fetch all exports with status SUCCESS to perform a download test (if result, else show warn message)
+        if (!empty($requestExportAllResponse)) {
+            $downloadFileUrl = $requestExportAllResponse['files']['export']['url'];
+            $filename = 'download_generic-label-' . date('Ymd_His') . '.pdf';
+            $this->downloadFile($downloadFileUrl, $filename);
+        } else {
+            $this->warn('Unable to test download of generic label. Could not generate label due to missing production order.');
+        }
+
+
         $this->testDetail('Requesting new export... Cancel test');
         $productExport = $this->createExport($requestExportRepository);
         try {
             $this->info('Trying to cancel...');
-            $requestExportByIdResponse = $requestExportRepository->cancelExport($productExport->getId());
+            $requestExportByIdResponse = $requestExportRepository->cancel($productExport->getId());
             $this->printApiResponse(print_r($requestExportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -859,7 +872,7 @@ class TestSdk extends Command
         $productExport = $this->createExport($requestExportRepository);
         try {
             $this->info('Trying to delete...');
-            $requestExportByIdResponse = $requestExportRepository->deleteExport($productExport->getId());
+            $requestExportByIdResponse = $requestExportRepository->delete($productExport->getId());
             $this->printApiResponse(print_r($requestExportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -906,7 +919,7 @@ class TestSdk extends Command
         try {
             $this->info('Sending Export Request');
 
-            $requestExportResponse = $requestExportRepository->requestExport($productExport);
+            $requestExportResponse = $requestExportRepository->create($productExport);
             $this->printApiResponse(print_r($requestExportResponse, 1));
 
             if ($productExport->getId()) {
@@ -955,6 +968,15 @@ class TestSdk extends Command
             return 0;
         }
 
+
+        // TODO - Bug see CO-2319
+        $this->testDetail('Trying to download the original file...');
+
+        $downloadFileUrl = $requestImportByIdResponse['files']['original']['url'];
+        $filename = 'download_import_original-' . date('Ymd_His') . '.xlsx';
+        $this->downloadFile($downloadFileUrl, $filename);
+
+
         $this->testDetail('Request data of all imports...');
 
         try {
@@ -985,7 +1007,7 @@ class TestSdk extends Command
         $productImport = $this->createImport($requestImportRepository);
         try {
             $this->info('Trying to cancel...');
-            $requestImportByIdResponse = $requestImportRepository->cancelImport($productImport->getId());
+            $requestImportByIdResponse = $requestImportRepository->cancel($productImport->getId());
             $this->printApiResponse(print_r($requestImportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -1002,7 +1024,7 @@ class TestSdk extends Command
         $productImport = $this->createImport($requestImportRepository);
         try {
             $this->info('Trying to delete...');
-            $requestImportByIdResponse = $requestImportRepository->deleteImport($productImport->getId());
+            $requestImportByIdResponse = $requestImportRepository->delete($productImport->getId());
             $this->printApiResponse(print_r($requestImportByIdResponse, 1));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
@@ -1060,7 +1082,7 @@ class TestSdk extends Command
         try {
             $this->info('Sending Import Request');
 
-            $requestImportResponse = $requestImportRepository->requestImport($productImport);
+            $requestImportResponse = $requestImportRepository->create($productImport);
             $this->printApiResponse(print_r($requestImportResponse, 1));
 
             if ($productImport->getId()) {
@@ -1093,7 +1115,6 @@ class TestSdk extends Command
 
         $this->testDetail('get all products');
         $productsOptions = new \MyPromo\Connect\SDK\Helpers\ProductOptions();
-        $productsOptions->setFrom(1);
         $productsOptions->setPage(1);
         $productsOptions->setPerPage(5);
         $productsOptions->setPagination(false);
@@ -1155,7 +1176,6 @@ class TestSdk extends Command
             $productVariantId = $productsResponse['data'][0]['variants']['id'];
 
             $productVariantOptions = new \MyPromo\Connect\SDK\Helpers\ProductVariantOptions();
-            $productVariantOptions->setFrom(1);
             $productVariantOptions->setPage(1);
             $productVariantOptions->setPerPage(5);
             $productVariantOptions->setPagination(false);
@@ -1338,7 +1358,6 @@ class TestSdk extends Command
         $productionRepository = new \MyPromo\Connect\SDK\Repositories\ProductionOrders\ProductionOrderRepository($this->clientFulfiller);
 
         $productionOrderOptions = new \MyPromo\Connect\SDK\Helpers\ProductionOrderOptions();
-        $productionOrderOptions->setFrom(1);
         $productionOrderOptions->setPage(1); // get data from this page number
         $productionOrderOptions->setPerPage(5);
 
@@ -1400,6 +1419,20 @@ class TestSdk extends Command
                 $this->stopMessage();
                 return 0;
             }
+        } else {
+            $this->warn('Unable to test generic label route, cause there is no prodution order.');
+        }
+
+
+        $this->testDetail('Trying to download the label file...');
+
+        // TODO - will fail due to wrong short link url - see CO-2320
+        if (!empty($productionOrderResponseGenericLabel)) {
+            $downloadFileUrl = $productionOrderResponseGenericLabel['url'];
+            $filename = 'download_generic-label-' . date('Ymd_His') . '.pdf';
+            $this->downloadFile($downloadFileUrl, $filename);
+        } else {
+            $this->warn('Unable to test download of generic label. Could not generate label due to missing production order.');
         }
 
 
@@ -1607,6 +1640,35 @@ class TestSdk extends Command
             return 0;
         }
 
+
+    }
+
+    /**
+     * download a file from connect
+     * own method to validate given files in some responses as well
+     *
+     * @param $file
+     * @return int|void
+     */
+    public function downloadFile($url, $targetFile)
+    {
+        $this->startMessage('download file ' . $url . ' and saving to ' . $targetFile);
+        $miscellaneousRepository = new GeneralRepository($this->clientMerchant);
+
+        try {
+            $downloadFileResponse = $miscellaneousRepository->downloadFile($url, $targetFile);
+            $this->printApiResponse(print_r($downloadFileResponse, true));
+
+            return true;
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return false;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return false;
+        }
 
     }
 
