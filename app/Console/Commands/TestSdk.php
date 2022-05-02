@@ -10,6 +10,7 @@ use MyPromo\Connect\SDK\Exceptions\InputValidationException;
 use MyPromo\Connect\SDK\Helpers\ProductVariantOptions;
 use MyPromo\Connect\SDK\Repositories\Client\ClientConnectorRepository;
 use MyPromo\Connect\SDK\Repositories\Client\ClientSettingRepository;
+use MyPromo\Connect\SDK\Repositories\Jobs\ConnectorJobRepository;
 use MyPromo\Connect\SDK\Repositories\Orders\OrderRepository;
 use MyPromo\Connect\SDK\Models\Design;
 use MyPromo\Connect\SDK\Repositories\Designs\DesignRepository;
@@ -86,34 +87,34 @@ class TestSdk extends Command
         $this->makeConnectionWithFulfillerClient();
         $this->info('');
 
+        /*
+                // TODO - DRAFT
+                // TODO - finish all api routes in this category and add tests
+                # Test General
+                $this->testGeneralRoutes();
+                $this->info('');
 
-        // TODO - DRAFT
-        // TODO - finish all api routes in this category and add tests
-        # Test General
-        $this->testGeneralRoutes();
-        $this->info('');
+                // TODO - WIP
+                // TODO - finish all api routes in this category and add tests
+                // TODO - contains api bugs
+                # Test Client Settings
+                $this->testClientSettings();
+                $this->info('');
 
-        // TODO - WIP
-        // TODO - finish all api routes in this category and add tests
-        // TODO - contains api bugs
-        # Test Client Settings
-        $this->testClientSettings();
-        $this->info('');
+                // TODO - WIP
+                // TODO - contains api bugs
+                # Test Client Connectors
+                $this->testClientConnectors();
+                $this->info('');
 
-        // TODO - WIP
-        // TODO - contains api bugs
-        # Test Client Connectors
-        $this->testClientConnectors();
-        $this->info('');
-
-        //dd('bla');
-
+        */
 
         // TODO - no tests written yet
         # Test Client Jobs
         $this->testClientJobs();
         $this->info('');
 
+        dd('bla');
 
         # Test Design Module
         $this->testDesignModule();
@@ -378,7 +379,7 @@ class TestSdk extends Command
         $clientConnector->setConnectorKey('shopify');
         $clientConnector->setTarget('sales_channel');
 
-        $shopifyConfigurations = new \MyPromo\Connect\SDK\Helpers\ConnectorConfigurationsShopify();
+        $shopifyConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationShopify();
         $shopifyConfigurations->setShopName('Shop Name' . ' - ' . date('Y-m-d H:i:s'));
         $shopifyConfigurations->setToken('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' . ' - ' . date('Y-m-d H:i:s'));
         $shopifyConfigurations->setShopUrl('mypromo-demo.myshopify.com' . ' - ' . date('Y-m-d H:i:s'));
@@ -425,7 +426,7 @@ class TestSdk extends Command
         $clientConnector->setConnectorKey('magento');
         $clientConnector->setTarget('sales_channel');
 
-        $magentoConfigurations = new \MyPromo\Connect\SDK\Helpers\ConnectorConfigurationsMagento();
+        $magentoConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationMagento();
         $magentoConfigurations->setInstanceUrl('url');
         $magentoConfigurations->setApiUsername('username');
         $magentoConfigurations->setApiPassword('password');
@@ -470,11 +471,44 @@ class TestSdk extends Command
      */
     public function testClientJobs()
     {
-        $this->startMessage('TODO - testClientJobs');
+        $this->startMessage('testClientJobs');
+        $connectorJobRepository = new ConnectorJobRepository($this->clientMerchant);
 
-        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        $this->error('Could not find any repository !!!');
-        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
+        $this->testDetail('Create a sales channel sync job');
+
+        $connectorJob = new \MyPromo\Connect\SDK\Models\ConnectorJob();
+        $connectorJob->setTarget('sales_channel');
+
+        $filters = new \MyPromo\Connect\SDK\Models\ConnectorJobFilters();
+        $filters->setJob('prices');
+        $filters->setFulfiller(null);
+        $filters->setProducts(null);
+        $filters->setTestProduct(false);
+        $connectorJob->setFilters($filters);
+
+        $callback = new \MyPromo\Connect\SDK\Models\Callback();
+        $callback->setUrl(config('connect.callback_url'));
+        $connectorJob->setCallback($callback);
+
+
+        // TODO - helpers for each job type???
+
+        dd($connectorJob);
+
+        try {
+            $clientConnectorsResponseMerchant = $connectorJobRepository->create($connectorJob);
+            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+
     }
 
 
@@ -1011,7 +1045,7 @@ class TestSdk extends Command
         $productImport->setDryRun(false);
         $productImport->setDateExecute(null);
 
-        $productImportInput = new \MyPromo\Connect\SDK\Helpers\ProductImportInput();
+        $productImportInput = new \MyPromo\Connect\SDK\Models\ProductImportInput();
 
         //$productImportInput->setUrl('https://downloads.test.mypromo.com/feeds/Merchant-Prices.xlsx');
         $productImportInput->setUrl('https://mypromo-shopify-dev.s3.eu-central-1.amazonaws.com/1651047033.xlsx?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYOR5ZFDEHKX74RD%2F20220427%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20220427T081034Z&X-Amz-SignedHeaders=host&X-Amz-Expires=604800&X-Amz-Signature=9ad5635d5f2b842d96af495d69e93c286cc3b460f45f5ce6ea953b38b93f5e68');
