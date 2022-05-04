@@ -80,9 +80,6 @@ class TestSdk extends Command
         $this->info('Testing Start........');
         $this->info('');
 
-        # Start Testing
-
-        # Test Connection
         $this->makeConnectionWithMerchantClient();
         $this->info('');
 
@@ -92,19 +89,17 @@ class TestSdk extends Command
 
         // TODO - DRAFT
         // TODO - finish all api routes in this category and add tests
-        # Test General
         $this->testGeneralRoutes();
         $this->info('');
 
         // TODO - WIP
         // TODO - finish all api routes in this category and add tests
         // TODO - contains api bugs
-        # Test Client Settings
         $this->testClientSettings();
         $this->info('');
 
 
-        
+
 
         $this->warn('We just have connector helpers for magento and shopify - add configuration helpers for all other connectors !!!');
 
@@ -114,21 +109,20 @@ class TestSdk extends Command
         $this->testClientConnectorsShopify();
         $this->info('');
 
-        // TODO - WIP
-        // TODO - Add more tests when API is finished
+        // TODO add more jobs
         $this->testClientJobsSalesChannel('products');
         $this->info('');
 
 
         // TODO - WIP
         // TODO - contains api bugs
-        # Test Client Connectors
         $this->testClientConnectorsMagento();
         $this->info('');
 
-        // TODO - WIP
-        // TODO - Add more tests when API is finished
         $this->testClientJobsSalesChannel('prices');
+        $this->info('');
+
+        $this->testClientJobsSalesChannel('inventory');
         $this->info('');
 
 
@@ -136,26 +130,20 @@ class TestSdk extends Command
 
 
 
-
-        # Test Design Module
         $this->testDesignModule();
         $this->info('');
 
         // TODO check short url provided and add download tests (see implementation of downloadFile($url, $targetFile))
-        # Test Orders Module
         $this->testOrdersModule();
         $this->info('');
 
-        # Test products
         $this->testProducts();
         $this->info('');
 
-        # Test product export
         $this->testProductExport();
         $this->info('');
 
 
-        # Test product import
         $this->testProductImport();
         $this->info('');
 
@@ -163,23 +151,19 @@ class TestSdk extends Command
 
 
         // TODO - sdk does not support this routes yet
-        # Test configuratior
         $this->testProductConfigurator();
         $this->info('');
 
 
         // TODO check short url provided and add download tests (see implementation of downloadFile($url, $targetFile))
-        # Test production
         $this->testProduction();
         $this->info('');
 
-        # Test Miscellaneous
         $this->testMiscellaneous();
         $this->info('');
 
         // TODO - DRAFT
         // TODO - finish all api routes in this category and add tests
-        # Test admin routes
         $this->testAdminRoutes();
         $this->info('');
 
