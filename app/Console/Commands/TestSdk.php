@@ -99,8 +99,6 @@ class TestSdk extends Command
         $this->info('');
 
 
-
-
         $this->warn('We just have connector helpers for magento and shopify - add configuration helpers for all other connectors !!!');
 
 
@@ -116,6 +114,7 @@ class TestSdk extends Command
 
         // TODO - WIP
         // TODO - contains api bugs
+        // TODO - CO-2327
         $this->testClientConnectorsMagento();
         $this->info('');
 
@@ -126,8 +125,7 @@ class TestSdk extends Command
         $this->info('');
 
 
-
-
+        #dd('stop');
 
 
         $this->testDesignModule();
@@ -460,7 +458,7 @@ class TestSdk extends Command
         $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
 
         //$clientConnectorConnectorId->setConnectorKey = 14;
-        $clientConnectorConnectorKey = "shopify";
+        $clientConnectorConnectorKey = "magento_sales_channel";
         $clientConnectorTarget = "sales_channel";
         $shopifyConfigurationsShopName = "Shop Name";
         $shopifyConfigurationsToken = "shpat_1234567890";
@@ -539,7 +537,7 @@ class TestSdk extends Command
         $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
 
         //$clientConnectorConnectorId->setConnectorKey = 14;
-        $clientConnectorConnectorKey = "shopify";
+        $clientConnectorConnectorKey = "magento_sales_channel";
         $clientConnectorTarget = "sales_channel";
         $shopifyConfigurationsShopName = "Shop Name B";
         $shopifyConfigurationsToken = "shpat_1234567890_B";
@@ -613,8 +611,6 @@ class TestSdk extends Command
         }
 
 
-
-
     }
 
     /*
@@ -631,15 +627,12 @@ class TestSdk extends Command
         $this->getClientConnectorSettings($clientConnectorRepositoryMerchant);
 
 
-
-
-
         $this->testDetail('Patch client connectors for merchant to magento - V1');
 
         $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
 
         //$clientConnectorConnectorId->setConnectorKey = 12;
-        $clientConnectorConnectorKey = 'magento';
+        $clientConnectorConnectorKey = 'magento_sales_channel';
         $clientConnectorTarget = 'sales_channel';
 
         $magentoConfigurationsInstanceUrl = 'url';
@@ -659,9 +652,6 @@ class TestSdk extends Command
         $clientConnector->setTarget($clientConnectorTarget);
 
         $magentoConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationMagento();
-        $clientConnector->setConnectorKey('magento');
-        $clientConnector->setTarget('sales_channel');
-
         $magentoConfigurations->setInstanceUrl($magentoConfigurationsInstanceUrl);
         $magentoConfigurations->setApiUsername($magentoConfigurationsApiUsername);
         $magentoConfigurations->setApiPassword($magentoConfigurationsApiPassword);
@@ -710,7 +700,7 @@ class TestSdk extends Command
         $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
 
         //$clientConnectorConnectorId->setConnectorKey = 12;
-        $clientConnectorConnectorKey = 'magento';
+        $clientConnectorConnectorKey = 'magento_sales_channel';
         $clientConnectorTarget = 'sales_channel';
 
         $magentoConfigurationsInstanceUrl = 'urlB';
@@ -730,9 +720,6 @@ class TestSdk extends Command
         $clientConnector->setTarget($clientConnectorTarget);
 
         $magentoConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationMagento();
-        $clientConnector->setConnectorKey('magento');
-        $clientConnector->setTarget('sales_channel');
-
         $magentoConfigurations->setInstanceUrl($magentoConfigurationsInstanceUrl);
         $magentoConfigurations->setApiUsername($magentoConfigurationsApiUsername);
         $magentoConfigurations->setApiPassword($magentoConfigurationsApiPassword);
@@ -823,6 +810,7 @@ class TestSdk extends Command
             return $clientConnectorsResponseMerchant;
 
         } catch (ApiResponseException | InputValidationException $e) {
+
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
             return 0;
@@ -832,7 +820,6 @@ class TestSdk extends Command
             return 0;
         }
     }
-
 
 
     /*
@@ -866,6 +853,10 @@ class TestSdk extends Command
             $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+
+            // TODO CO-2326
+            //print_r($connectorJob);
+
             $this->stopMessage();
             return 0;
         } catch (ApiRequestException $e) {
@@ -2079,7 +2070,7 @@ class TestSdk extends Command
     {
         // TODO - move toggles to somewhere else
         $show_api_response = true;
-        $crop = true;
+        $crop = false;
 
         if ($show_api_response == true) {
             if ($crop == true) {
