@@ -103,18 +103,38 @@ class TestSdk extends Command
         $this->testClientSettings();
         $this->info('');
 
+
+        
+
+        $this->warn('We just have connector helpers for magento and shopify - add configuration helpers for all other connectors !!!');
+
+
         // TODO - WIP
         // TODO - contains api bugs
-        # Test Client Connectors
-        $this->testClientConnectors();
+        $this->testClientConnectorsShopify();
         $this->info('');
-
 
         // TODO - WIP
         // TODO - Add more tests when API is finished
-        # Test Client Jobs
-        $this->testClientJobs();
+        $this->testClientJobsSalesChannel('products');
         $this->info('');
+
+
+        // TODO - WIP
+        // TODO - contains api bugs
+        # Test Client Connectors
+        $this->testClientConnectorsMagento();
+        $this->info('');
+
+        // TODO - WIP
+        // TODO - Add more tests when API is finished
+        $this->testClientJobsSalesChannel('prices');
+        $this->info('');
+
+
+
+
+
 
 
         # Test Design Module
@@ -438,9 +458,9 @@ class TestSdk extends Command
 
 
     /*
-     * testClientConnectors
+     * testClientConnectorsShopify
      */
-    public function testClientConnectors()
+    public function testClientConnectorsShopify()
     {
         $this->startMessage('Client connectors test start......');
         $clientConnectorRepositoryMerchant = new ClientConnectorRepository($this->clientMerchant);
@@ -609,53 +629,172 @@ class TestSdk extends Command
         }
 
 
-        dd('stop');
 
 
-        $this->testDetail('Patch client connectors for merchant to magento');
+    }
+
+    /*
+     * testClientConnectorsMagento
+     */
+    public function testClientConnectorsMagento()
+    {
+        $this->startMessage('Client connectors test start......');
+        $clientConnectorRepositoryMerchant = new ClientConnectorRepository($this->clientMerchant);
+        $clientConnectorRepositoryFulfiller = new ClientConnectorRepository($this->clientFulfiller);
+
+
+        $this->testDetail('Get client connectors for merchant');
+        $this->getClientConnectorSettings($clientConnectorRepositoryMerchant);
+
+
+
+
+
+        $this->testDetail('Patch client connectors for merchant to magento - V1');
 
         $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
-        //$clientConnector->setConnectorId(14);
+
+        //$clientConnectorConnectorId->setConnectorKey = 12;
+        $clientConnectorConnectorKey = 'magento';
+        $clientConnectorTarget = 'sales_channel';
+
+        $magentoConfigurationsInstanceUrl = 'url';
+        $magentoConfigurationsApiUsername = 'username';
+        $magentoConfigurationsApiPassword = 'password';
+        $magentoConfigurationsWebsiteCode = 'XXXX';
+        $magentoConfigurationsWebsiteCodeId = 1;
+        $magentoConfigurationsWebsiteCodeName = 'Website name';
+        $magentoConfigurationsStoreCode = 'XXXXX';
+        $magentoConfigurationsStoreCodeId = 1;
+        $magentoConfigurationsStoreCodeName = 'Store code';
+        $magentoConfigurationsSyncProductsSettings = 'normal';
+        $magentoConfigurationsSalesPriceConfig = 'use_sales_price';
+
+        //$clientConnector->setConnectorId($clientConnectorConnectorId);
+        $clientConnector->setConnectorKey($clientConnectorConnectorKey);
+        $clientConnector->setTarget($clientConnectorTarget);
+
+        $magentoConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationMagento();
         $clientConnector->setConnectorKey('magento');
         $clientConnector->setTarget('sales_channel');
 
-        $magentoConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationMagento();
-        $magentoConfigurations->setInstanceUrl('url');
-        $magentoConfigurations->setApiUsername('username');
-        $magentoConfigurations->setApiPassword('password');
-        $magentoConfigurations->setWebsiteCode('XXXX');
-        $magentoConfigurations->setWebsiteCodeId(1);
-        $magentoConfigurations->setWebsiteCodeName('Website name');
-        $magentoConfigurations->setStoreCode('XXXXX');
-        $magentoConfigurations->setStoreCodeId(1);
-        $magentoConfigurations->setStoreCodeName('Store code');
-        $magentoConfigurations->setSyncProductsSettings('normal');
-        $magentoConfigurations->setSalesPriceConfig('use_sales_price');
+        $magentoConfigurations->setInstanceUrl($magentoConfigurationsInstanceUrl);
+        $magentoConfigurations->setApiUsername($magentoConfigurationsApiUsername);
+        $magentoConfigurations->setApiPassword($magentoConfigurationsApiPassword);
+        $magentoConfigurations->setWebsiteCode($magentoConfigurationsWebsiteCode);
+        $magentoConfigurations->setWebsiteCodeId($magentoConfigurationsWebsiteCodeId);
+        $magentoConfigurations->setWebsiteCodeName($magentoConfigurationsWebsiteCodeName);
+        $magentoConfigurations->setStoreCode($magentoConfigurationsStoreCode);
+        $magentoConfigurations->setStoreCodeId($magentoConfigurationsStoreCodeId);
+        $magentoConfigurations->setStoreCodeName($magentoConfigurationsStoreCodeName);
+        $magentoConfigurations->setSyncProductsSettings($magentoConfigurationsSyncProductsSettings);
+        $magentoConfigurations->setSalesPriceConfig($magentoConfigurationsSalesPriceConfig);
+
+        // TODO - settings not saved correctly anymore! see CO-2314
+        // TODO - new settings added to sdk - after adding to api: test it!! see CO-2315
 
         $clientConnector->setConfiguration($magentoConfigurations);
 
-        $this->printApiResponse(print_r($clientConnector->toArray(), true));
+        $this->setClientConnectorSettings($clientConnectorRepositoryMerchant, $clientConnector);
 
+
+        $this->testDetail('Get client connector settings for merchant again and compare results');
+        $clientConnectorsResponse = $this->getClientConnectorSettings($clientConnectorRepositoryMerchant, null, null, $clientConnectorTarget);
 
         try {
-            $clientConnectorsResponseMerchant = $clientConnectorRepositoryMerchant->update($clientConnector);
-            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            // TODO - commented out and added error message - after fix the issue CO-2316 revert
-            $this->error('setting magento as connector is not working - CO-2316');
-            //return 0;
-        } catch (ApiRequestException $e) {
+            $this->compareValues('ConnectorKey', $clientConnectorsResponse['data'][0]['connector_key'], $clientConnectorConnectorKey);
+            $this->compareValues('Target', $clientConnectorsResponse['data'][0]['target'], $clientConnectorTarget);
+
+            $this->compareValues('InstanceUrl', $clientConnectorsResponse['data'][0]['configuration']['magento_connector_instance_url'], $magentoConfigurationsInstanceUrl);
+            $this->compareValues('ApiUsername', $clientConnectorsResponse['data'][0]['configuration']['magento_connector_api_username'], $magentoConfigurationsApiUsername);
+            $this->compareValues('ApiPassword', $clientConnectorsResponse['data'][0]['configuration']['magento_connector_api_password'], $magentoConfigurationsApiPassword);
+            $this->compareValues('WebsiteCode', $clientConnectorsResponse['data'][0]['configuration']['magento_website_code'], $magentoConfigurationsWebsiteCode);
+            $this->compareValues('WebsiteCodeId', $clientConnectorsResponse['data'][0]['configuration']['magento_website_code_id'], $magentoConfigurationsWebsiteCodeId);
+            $this->compareValues('WebsiteCodeName', $clientConnectorsResponse['data'][0]['configuration']['magento_website_code_name'], $magentoConfigurationsWebsiteCodeName);
+            $this->compareValues('StoreCode', $clientConnectorsResponse['data'][0]['configuration']['magento_store_code'], $magentoConfigurationsStoreCode);
+            $this->compareValues('StoreCodeId', $clientConnectorsResponse['data'][0]['configuration']['magento_store_code_id'], $magentoConfigurationsStoreCodeId);
+            $this->compareValues('StoreCodeName', $clientConnectorsResponse['data'][0]['configuration']['magento_store_code_name'], $magentoConfigurationsStoreCodeName);
+            $this->compareValues('SyncProductsSettings', $clientConnectorsResponse['data'][0]['configuration']['sync_products_settings'], $magentoConfigurationsSyncProductsSettings);
+            $this->compareValues('SalesPriceConfig', $clientConnectorsResponse['data'][0]['configuration']['sales_price_config'], $magentoConfigurationsSalesPriceConfig);
+        } catch (\Exception $e) {
             $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
         }
 
 
-        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-        $this->error('We just have helpers for magento and shopify - add configuration helpers for all other connectors !!!');
-        $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->testDetail('Patch client connectors for merchant to magento - V2');
+
+        $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
+
+        //$clientConnectorConnectorId->setConnectorKey = 12;
+        $clientConnectorConnectorKey = 'magento';
+        $clientConnectorTarget = 'sales_channel';
+
+        $magentoConfigurationsInstanceUrl = 'urlB';
+        $magentoConfigurationsApiUsername = 'usernameB';
+        $magentoConfigurationsApiPassword = 'passwordB';
+        $magentoConfigurationsWebsiteCode = 'XXXXB';
+        $magentoConfigurationsWebsiteCodeId = 2;
+        $magentoConfigurationsWebsiteCodeName = 'Website nameB';
+        $magentoConfigurationsStoreCode = 'XXXXXB';
+        $magentoConfigurationsStoreCodeId = 2;
+        $magentoConfigurationsStoreCodeName = 'Store codeB';
+        $magentoConfigurationsSyncProductsSettings = 'all';
+        $magentoConfigurationsSalesPriceConfig = 'use_buying_price';
+
+        //$clientConnector->setConnectorId($clientConnectorConnectorId);
+        $clientConnector->setConnectorKey($clientConnectorConnectorKey);
+        $clientConnector->setTarget($clientConnectorTarget);
+
+        $magentoConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationMagento();
+        $clientConnector->setConnectorKey('magento');
+        $clientConnector->setTarget('sales_channel');
+
+        $magentoConfigurations->setInstanceUrl($magentoConfigurationsInstanceUrl);
+        $magentoConfigurations->setApiUsername($magentoConfigurationsApiUsername);
+        $magentoConfigurations->setApiPassword($magentoConfigurationsApiPassword);
+        $magentoConfigurations->setWebsiteCode($magentoConfigurationsWebsiteCode);
+        $magentoConfigurations->setWebsiteCodeId($magentoConfigurationsWebsiteCodeId);
+        $magentoConfigurations->setWebsiteCodeName($magentoConfigurationsWebsiteCodeName);
+        $magentoConfigurations->setStoreCode($magentoConfigurationsStoreCode);
+        $magentoConfigurations->setStoreCodeId($magentoConfigurationsStoreCodeId);
+        $magentoConfigurations->setStoreCodeName($magentoConfigurationsStoreCodeName);
+        $magentoConfigurations->setSyncProductsSettings($magentoConfigurationsSyncProductsSettings);
+        $magentoConfigurations->setSalesPriceConfig($magentoConfigurationsSalesPriceConfig);
+
+        // TODO - settings not saved correctly anymore! see CO-2314
+        // TODO - new settings added to sdk - after adding to api: test it!! see CO-2315
+
+        $clientConnector->setConfiguration($magentoConfigurations);
+
+        $this->setClientConnectorSettings($clientConnectorRepositoryMerchant, $clientConnector);
+
+
+        $this->testDetail('Get client connector settings for merchant again and compare results');
+        $clientConnectorsResponse = $this->getClientConnectorSettings($clientConnectorRepositoryMerchant, null, null, $clientConnectorTarget);
+
+        try {
+            $this->compareValues('ConnectorKey', $clientConnectorsResponse['data'][0]['connector_key'], $clientConnectorConnectorKey);
+            $this->compareValues('Target', $clientConnectorsResponse['data'][0]['target'], $clientConnectorTarget);
+
+            $this->compareValues('InstanceUrl', $clientConnectorsResponse['data'][0]['configuration']['magento_connector_instance_url'], $magentoConfigurationsInstanceUrl);
+            $this->compareValues('ApiUsername', $clientConnectorsResponse['data'][0]['configuration']['magento_connector_api_username'], $magentoConfigurationsApiUsername);
+            $this->compareValues('ApiPassword', $clientConnectorsResponse['data'][0]['configuration']['magento_connector_api_password'], $magentoConfigurationsApiPassword);
+            $this->compareValues('WebsiteCode', $clientConnectorsResponse['data'][0]['configuration']['magento_website_code'], $magentoConfigurationsWebsiteCode);
+            $this->compareValues('WebsiteCodeId', $clientConnectorsResponse['data'][0]['configuration']['magento_website_code_id'], $magentoConfigurationsWebsiteCodeId);
+            $this->compareValues('WebsiteCodeName', $clientConnectorsResponse['data'][0]['configuration']['magento_website_code_name'], $magentoConfigurationsWebsiteCodeName);
+            $this->compareValues('StoreCode', $clientConnectorsResponse['data'][0]['configuration']['magento_store_code'], $magentoConfigurationsStoreCode);
+            $this->compareValues('StoreCodeId', $clientConnectorsResponse['data'][0]['configuration']['magento_store_code_id'], $magentoConfigurationsStoreCodeId);
+            $this->compareValues('StoreCodeName', $clientConnectorsResponse['data'][0]['configuration']['magento_store_code_name'], $magentoConfigurationsStoreCodeName);
+            $this->compareValues('SyncProductsSettings', $clientConnectorsResponse['data'][0]['configuration']['sync_products_settings'], $magentoConfigurationsSyncProductsSettings);
+            $this->compareValues('SalesPriceConfig', $clientConnectorsResponse['data'][0]['configuration']['sales_price_config'], $magentoConfigurationsSalesPriceConfig);
+        } catch (\Exception $e) {
+            $this->error($e->getMessage());
+        }
+
+
+        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        $this->warn('We just have helpers for magento and shopify - add configuration helpers for all other connectors !!!');
+        $this->warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
     }
 
@@ -710,12 +849,14 @@ class TestSdk extends Command
         }
     }
 
+
+
     /*
-     * testClientJobs
+     * testClientJobsSalesChannel
      */
-    public function testClientJobs()
+    public function testClientJobsSalesChannel($job)
     {
-        $this->startMessage('testClientJobs');
+        $this->startMessage('testClientJobsSalesChannel');
         $connectorJobRepository = new ConnectorJobRepository($this->clientMerchant);
 
 
@@ -725,7 +866,7 @@ class TestSdk extends Command
         $connectorJob->setTarget('sales_channel');
 
         $filters = new \MyPromo\Connect\SDK\Models\ConnectorJobFilters();
-        $filters->setJob('prices');
+        $filters->setJob($job);
         $filters->setFulfiller(null);
         $filters->setProducts(null);
         $filters->setTestProduct(false);
