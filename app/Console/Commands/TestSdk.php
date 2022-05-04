@@ -15,6 +15,7 @@ use MyPromo\Connect\SDK\Repositories\Orders\OrderRepository;
 use MyPromo\Connect\SDK\Models\Design;
 use MyPromo\Connect\SDK\Repositories\Designs\DesignRepository;
 use MyPromo\Connect\SDK\Repositories\Miscellaneous\GeneralRepository;
+use Prophecy\Exception\Prediction\AggregateException;
 
 class TestSdk extends Command
 {
@@ -110,6 +111,7 @@ class TestSdk extends Command
 
 
         // TODO - WIP
+        // TODO - Add more tests when API is finished
         # Test Client Jobs
         $this->testClientJobs();
         $this->info('');
@@ -257,77 +259,171 @@ class TestSdk extends Command
 
 
         $this->testDetail('Get client settings for merchant');
+        $this->getClientSettings($clientSettingRepositoryMerchant);
+
+        $this->testDetail('Patch client settings for merchant - V1');
+        $clientSettingsMerchant = new \MyPromo\Connect\SDK\Models\ClientSettingMerchant();
+
+        $clientSettingsMerchantActivateNewFulfiller = true;
+        $clientSettingsMerchantActivateNewProducts = true;
+        $clientSettingsMerchantHasToSupplyCarrier = true;
+        $clientSettingsMerchantHasToSupplyTrackingCode = true;
+        $clientSettingsMerchantPriceResetLogic = 1;
+        $clientSettingsMerchantAdjustMaxUpPercentage = 0;
+        $clientSettingsMerchantAdjustMaxDownPercentage = 0;
+        $clientSettingsMerchantSentToProductionDelay = 1;
+
+        $clientSettingsMerchant->setActivateNewFulfiller($clientSettingsMerchantActivateNewFulfiller);
+        $clientSettingsMerchant->setActivateNewProducts($clientSettingsMerchantActivateNewProducts);
+        $clientSettingsMerchant->setHasToSupplyCarrier($clientSettingsMerchantHasToSupplyCarrier);
+        $clientSettingsMerchant->setHasToSupplyTrackingCode($clientSettingsMerchantHasToSupplyTrackingCode);
+        $clientSettingsMerchant->setPriceResetLogic($clientSettingsMerchantPriceResetLogic);
+        $clientSettingsMerchant->setAdjustMaxUpPercentage($clientSettingsMerchantAdjustMaxUpPercentage);
+        $clientSettingsMerchant->setAdjustMaxDownPercentage($clientSettingsMerchantAdjustMaxDownPercentage);
+        $clientSettingsMerchant->setSentToProductionDelay($clientSettingsMerchantSentToProductionDelay);
+
+        $this->setClientSettings($clientSettingRepositoryMerchant, $clientSettingsMerchant);
+
+        $this->testDetail('Get client settings for merchant again and compare results');
+        $clientSettingResponseMerchant = $this->getClientSettings($clientSettingRepositoryMerchant);
 
         try {
-            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->getSettings();
-            $this->printApiResponse(print_r($clientSettingResponseMerchant, true));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            return 0;
-        } catch (ApiRequestException $e) {
+            $this->compareValues('SentToProductionDelay', $clientSettingResponseMerchant['production']['sent_to_production_delay'], $clientSettingsMerchantSentToProductionDelay);
+            $this->compareValues('HasToSupplyCarrier', $clientSettingResponseMerchant['shipping']['has_to_supply_carrier'], $clientSettingsMerchantHasToSupplyCarrier);
+            $this->compareValues('HasToSupplyTrackingCode', $clientSettingResponseMerchant['shipping']['has_to_supply_tracking_code'], $clientSettingsMerchantHasToSupplyTrackingCode);
+            $this->compareValues('PriceResetLogic', $clientSettingResponseMerchant['price_rules']['price_reset_logic'], $clientSettingsMerchantPriceResetLogic);
+            $this->compareValues('AdjustMaxUpPercentage', $clientSettingResponseMerchant['price_rules']['adjust_max_up_percentage'], $clientSettingsMerchantAdjustMaxUpPercentage);
+            $this->compareValues('AdjustMaxDownPercentage', $clientSettingResponseMerchant['price_rules']['adjust_max_down_percentage'], $clientSettingsMerchantAdjustMaxDownPercentage);
+            $this->compareValues('ActivateNewFulfiller', $clientSettingResponseMerchant['automatisms']['activate_new_fulfillers'], $clientSettingsMerchantActivateNewFulfiller);
+            $this->compareValues('ActivateNewProducts', $clientSettingResponseMerchant['automatisms']['activate_new_products'], $clientSettingsMerchantActivateNewProducts);
+        } catch (\Exception $e) {
             $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
+        }
+
+
+        $this->testDetail('Patch client settings for merchant - V2');
+        $clientSettingsMerchant = new \MyPromo\Connect\SDK\Models\ClientSettingMerchant();
+
+        $clientSettingsMerchantActivateNewFulfiller = false;
+        $clientSettingsMerchantActivateNewProducts = false;
+        $clientSettingsMerchantHasToSupplyCarrier = false;
+        $clientSettingsMerchantHasToSupplyTrackingCode = false;
+        $clientSettingsMerchantPriceResetLogic = 0;
+        $clientSettingsMerchantAdjustMaxUpPercentage = 1;
+        $clientSettingsMerchantAdjustMaxDownPercentage = 1;
+        $clientSettingsMerchantSentToProductionDelay = 0;
+
+        $clientSettingsMerchant->setActivateNewFulfiller($clientSettingsMerchantActivateNewFulfiller);
+        $clientSettingsMerchant->setActivateNewProducts($clientSettingsMerchantActivateNewProducts);
+        $clientSettingsMerchant->setHasToSupplyCarrier($clientSettingsMerchantHasToSupplyCarrier);
+        $clientSettingsMerchant->setHasToSupplyTrackingCode($clientSettingsMerchantHasToSupplyTrackingCode);
+        $clientSettingsMerchant->setPriceResetLogic($clientSettingsMerchantPriceResetLogic);
+        $clientSettingsMerchant->setAdjustMaxUpPercentage($clientSettingsMerchantAdjustMaxUpPercentage);
+        $clientSettingsMerchant->setAdjustMaxDownPercentage($clientSettingsMerchantAdjustMaxDownPercentage);
+        $clientSettingsMerchant->setSentToProductionDelay($clientSettingsMerchantSentToProductionDelay);
+
+        $this->setClientSettings($clientSettingRepositoryMerchant, $clientSettingsMerchant);
+
+
+        $this->testDetail('Get client settings for merchant again and compare results');
+        $clientSettingResponseMerchant = $this->getClientSettings($clientSettingRepositoryMerchant);
+
+        try {
+            $this->compareValues('SentToProductionDelay', $clientSettingResponseMerchant['production']['sent_to_production_delay'], $clientSettingsMerchantSentToProductionDelay);
+            $this->compareValues('HasToSupplyCarrier', $clientSettingResponseMerchant['shipping']['has_to_supply_carrier'], $clientSettingsMerchantHasToSupplyCarrier);
+            $this->compareValues('HasToSupplyTrackingCode', $clientSettingResponseMerchant['shipping']['has_to_supply_tracking_code'], $clientSettingsMerchantHasToSupplyTrackingCode);
+            $this->compareValues('PriceResetLogic', $clientSettingResponseMerchant['price_rules']['price_reset_logic'], $clientSettingsMerchantPriceResetLogic);
+            $this->compareValues('AdjustMaxUpPercentage', $clientSettingResponseMerchant['price_rules']['adjust_max_up_percentage'], $clientSettingsMerchantAdjustMaxUpPercentage);
+            $this->compareValues('AdjustMaxDownPercentage', $clientSettingResponseMerchant['price_rules']['adjust_max_down_percentage'], $clientSettingsMerchantAdjustMaxDownPercentage);
+            $this->compareValues('ActivateNewFulfiller', $clientSettingResponseMerchant['automatisms']['activate_new_fulfillers'], $clientSettingsMerchantActivateNewFulfiller);
+            $this->compareValues('ActivateNewProducts', $clientSettingResponseMerchant['automatisms']['activate_new_products'], $clientSettingsMerchantActivateNewProducts);
+        } catch (\Exception $e) {
+            $this->error($e->getMessage());
         }
 
 
         $this->testDetail('Get client settings for fulfillers');
-
-        try {
-            $clientSettingResponseFulfiller = $clientSettingRepositoryFulfiller->getSettings();
-            $this->printApiResponse(print_r($clientSettingResponseFulfiller, true));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            return 0;
-        } catch (ApiRequestException $e) {
-            $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
-        }
+        $this->getClientSettings($clientSettingRepositoryFulfiller);
 
 
-        $this->testDetail('Patch client settings for merchant');
-
-        $clientSettingsMerchant = new \MyPromo\Connect\SDK\Models\ClientSettingMerchant();
-
-        $clientSettingsMerchant->setActivateNewFulfiller(true);
-        $clientSettingsMerchant->setActivateNewProducts(true);
-        $clientSettingsMerchant->setHasToSupplyCarrier(true);
-        $clientSettingsMerchant->setHasToSupplyTrackingCode(true);
-        $clientSettingsMerchant->setPriceResetLogic(1);
-        $clientSettingsMerchant->setAdjustMaxUpPercentage(0);
-        $clientSettingsMerchant->setAdjustMaxDownPercentage(0);
-        $clientSettingsMerchant->setSentToProductionDelay(1);
-
-
-        try {
-            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->getSettings($clientSettingsMerchant);
-            $this->printApiResponse(print_r($clientSettingResponseMerchant, true));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            // TODO just commented out cause of an api issue - revert, when CO-2313 is done
-            #return 0;
-        } catch (ApiRequestException $e) {
-            $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
-        }
-
-
-        $this->testDetail('Patch client settings for fulfiller');
+        $this->testDetail('Patch client settings for fulfiller - V1');
 
         $clientSettingsFulfiller = new \MyPromo\Connect\SDK\Models\ClientSettingFulfiller();
+        $clientSettingsFulfillerHasToSupplyCarrier = false;
+        $clientSettingsFulfillerHasToSupplyTrackingCode = false;
 
-        $clientSettingsFulfiller->setHasToSupplyCarrier(true);
-        $clientSettingsFulfiller->setHasToSupplyTrackingCode(true);
+        $clientSettingsFulfiller->setHasToSupplyCarrier($clientSettingsFulfillerHasToSupplyCarrier);
+        $clientSettingsFulfiller->setHasToSupplyTrackingCode($clientSettingsFulfillerHasToSupplyTrackingCode);
 
+        $this->setClientSettings($clientSettingRepositoryFulfiller, $clientSettingsFulfiller);
+
+
+        $this->testDetail('Get client settings for fulfiller again and compare results');
+        $clientSettingResponseFulfiller = $this->getClientSettings($clientSettingRepositoryMerchant);
 
         try {
-            $clientSettingResponseMerchant = $clientSettingRepositoryMerchant->setSettings($clientSettingsMerchant);
-            $this->printApiResponse(print_r($clientSettingResponseMerchant, true));
+            $this->compareValues('HasToSupplyCarrier', $clientSettingResponseFulfiller['shipping']['has_to_supply_carrier'], $clientSettingsFulfillerHasToSupplyCarrier);
+            $this->compareValues('HasToSupplyTrackingCode', $clientSettingResponseFulfiller['shipping']['has_to_supply_tracking_code'], $clientSettingsFulfillerHasToSupplyTrackingCode);
+        } catch (\Exception $e) {
+            $this->error($e->getMessage());
+        }
+
+
+        $this->testDetail('Patch client settings for fulfiller - V1');
+
+        $clientSettingsFulfiller = new \MyPromo\Connect\SDK\Models\ClientSettingFulfiller();
+        $clientSettingsFulfillerHasToSupplyCarrier = true;
+        $clientSettingsFulfillerHasToSupplyTrackingCode = true;
+
+        $clientSettingsFulfiller->setHasToSupplyCarrier($clientSettingsFulfillerHasToSupplyCarrier);
+        $clientSettingsFulfiller->setHasToSupplyTrackingCode($clientSettingsFulfillerHasToSupplyTrackingCode);
+
+        $this->setClientSettings($clientSettingRepositoryFulfiller, $clientSettingsFulfiller);
+
+
+        $this->testDetail('Get client settings for fulfiller again and compare results');
+        $clientSettingResponseFulfiller = $this->getClientSettings($clientSettingRepositoryMerchant);
+
+        try {
+            $this->compareValues('HasToSupplyCarrier', $clientSettingResponseFulfiller['shipping']['has_to_supply_carrier'], $clientSettingsFulfillerHasToSupplyCarrier);
+            $this->compareValues('HasToSupplyTrackingCode', $clientSettingResponseFulfiller['shipping']['has_to_supply_tracking_code'], $clientSettingsFulfillerHasToSupplyTrackingCode);
+        } catch (\Exception $e) {
+            $this->error($e->getMessage());
+        }
+
+
+    }
+
+
+    private function getClientSettings(ClientSettingRepository $clientSettingRepository)
+    {
+        $this->testDetail('Get client settings');
+
+        try {
+            $clientSettingResponse = $clientSettingRepository->getSettings();
+            $this->printApiResponse(print_r($clientSettingResponse, true));
+
+            return $clientSettingResponse;
+
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+    }
+
+    private function setClientSettings(ClientSettingRepository $clientSettingRepository, $clientSettings)
+    {
+        try {
+            $clientSettingResponse = $clientSettingRepository->getSettings($clientSettings);
+            $this->printApiResponse(print_r($clientSettingResponse, true));
+
+            return $clientSettingResponse;
+
         } catch (ApiResponseException | InputValidationException $e) {
             $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
             $this->stopMessage();
@@ -338,7 +434,6 @@ class TestSdk extends Command
             $this->stopMessage();
             return 0;
         }
-
     }
 
 
@@ -353,74 +448,168 @@ class TestSdk extends Command
 
 
         $this->testDetail('Get client connectors for merchant');
-
-        $clientConnectorOptions = new \MyPromo\Connect\SDK\Helpers\ClientConnectorOptions();
-        $clientConnectorOptions->setPage(1); // get data from this page number
-        $clientConnectorOptions->setPerPage(5);
-        $clientConnectorOptions->setPagination(false);
-        #$clientConnectorOptions->setConnectorId(12);
-        #$clientConnectorOptions->setConnectorKey('shopify');
-        #$clientConnectorOptions->setTarget('sales_channel');
-
-        try {
-            $clientConnectorsResponseMerchant = $clientConnectorRepositoryMerchant->all($clientConnectorOptions);
-            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            return 0;
-        } catch (ApiRequestException $e) {
-            $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
-        }
+        $this->getClientConnectorSettings($clientConnectorRepositoryMerchant);
 
 
-        $this->testDetail('Patch client connectors for merchant to shopify');
+        $this->testDetail('Patch client connectors for merchant to shopify - V1');
 
         $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
-        //$clientConnector->setConnectorId(14);
-        $clientConnector->setConnectorKey('shopify');
-        $clientConnector->setTarget('sales_channel');
+
+        //$clientConnectorConnectorId->setConnectorKey = 14;
+        $clientConnectorConnectorKey = "shopify";
+        $clientConnectorTarget = "sales_channel";
+        $shopifyConfigurationsShopName = "Shop Name";
+        $shopifyConfigurationsToken = "shpat_1234567890";
+        $shopifyConfigurationsShopUrl = "mypromo-demo.myshopify.com";
+        $shopifyConfigurationsSalePriceConfig = "use_sales_price";
+        $shopifyConfigurationsShopCurrency = "EUR";
+        $shopifyConfigurationsProductsLanguage = "DE";
+        $shopifyConfigurationsSyncProductSettings = "normal";
+        $shopifyConfigurationsCreateCollections = true;
+        $shopifyConfigurationsUpdateImages = true;
+        $shopifyConfigurationsUpdateProducts = true;
+        $shopifyConfigurationsUpdateSeo = true;
+        $shopifyConfigurationsRecreateDeletedCollection = true;
+        $shopifyConfigurationsRecreateDeletedProducts = true;
+        $shopifyConfigurationsAddNewProductsAutomatically = true;
+        $shopifyConfigurationsUseMegaMenu = true;
+
+        //$clientConnector->setConnectorId($clientConnectorConnectorId);
+        $clientConnector->setConnectorKey($clientConnectorConnectorKey);
+        $clientConnector->setTarget($clientConnectorTarget);
 
         $shopifyConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationShopify();
-        $shopifyConfigurations->setShopName('Shop Name' . ' - ' . date('Y-m-d H:i:s'));
-        $shopifyConfigurations->setToken('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' . ' - ' . date('Y-m-d H:i:s'));
-        $shopifyConfigurations->setShopUrl('mypromo-demo.myshopify.com' . ' - ' . date('Y-m-d H:i:s'));
-
-        $shopifyConfigurations->setSalePriceConfig('use_sales_price');
-        $shopifyConfigurations->setShopCurrency('EUR');
-        $shopifyConfigurations->setProductsLanguage('FR');
-        $shopifyConfigurations->setSyncProductSettings('normal');
-        $shopifyConfigurations->setCreateCollections(true);
-        $shopifyConfigurations->setUpdateImages(true);
-        $shopifyConfigurations->setUpdateProducts(true);
-        $shopifyConfigurations->setUpdateSeo(true);
-        $shopifyConfigurations->setRecreateDeletedCollection(true);
-        $shopifyConfigurations->setRecreateDeletedProducts(true);
-        $shopifyConfigurations->setAddNewProductsAutomatically(true); // new
-        $shopifyConfigurations->setUseMegaMenu(true); // new
+        $shopifyConfigurations->setShopName($shopifyConfigurationsShopName);
+        $shopifyConfigurations->setToken($shopifyConfigurationsToken);
+        $shopifyConfigurations->setShopUrl($shopifyConfigurationsShopUrl);
+        $shopifyConfigurations->setSalePriceConfig($shopifyConfigurationsSalePriceConfig);
+        $shopifyConfigurations->setShopCurrency($shopifyConfigurationsShopCurrency);
+        $shopifyConfigurations->setProductsLanguage($shopifyConfigurationsProductsLanguage);
+        $shopifyConfigurations->setSyncProductSettings($shopifyConfigurationsSyncProductSettings);
+        $shopifyConfigurations->setCreateCollections($shopifyConfigurationsCreateCollections);
+        $shopifyConfigurations->setUpdateImages($shopifyConfigurationsUpdateImages);
+        $shopifyConfigurations->setUpdateProducts($shopifyConfigurationsUpdateProducts);
+        $shopifyConfigurations->setUpdateSeo($shopifyConfigurationsUpdateSeo);
+        $shopifyConfigurations->setRecreateDeletedCollection($shopifyConfigurationsRecreateDeletedCollection);
+        $shopifyConfigurations->setRecreateDeletedProducts($shopifyConfigurationsRecreateDeletedProducts);
+        $shopifyConfigurations->setAddNewProductsAutomatically($shopifyConfigurationsAddNewProductsAutomatically);
+        $shopifyConfigurations->setUseMegaMenu($shopifyConfigurationsUseMegaMenu);
 
         // TODO - settings not saved correctly anymore! see CO-2314
         // TODO - new settings added to sdk - after adding to api: test it!! see CO-2315
 
         $clientConnector->setConfiguration($shopifyConfigurations);
 
-        $this->info(print_r($clientConnector->toArray(), true));
+        $this->setClientConnectorSettings($clientConnectorRepositoryMerchant, $clientConnector);
 
+
+        $this->testDetail('Get client connector settings for merchant again and compare results');
+        $clientConnectorsResponse = $this->getClientConnectorSettings($clientConnectorRepositoryMerchant, null, null, $clientConnectorTarget);
 
         try {
-            $clientConnectorsResponseMerchant = $clientConnectorRepositoryMerchant->update($clientConnector);
-            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            return 0;
-        } catch (ApiRequestException $e) {
+            $this->compareValues('ConnectorKey', $clientConnectorsResponse['data'][0]['connector_key'], $clientConnectorConnectorKey);
+            $this->compareValues('Target', $clientConnectorsResponse['data'][0]['target'], $clientConnectorTarget);
+
+            $this->compareValues('ShopName', $clientConnectorsResponse['data'][0]['configuration']['spy_shop_name'], $shopifyConfigurationsShopName);
+            $this->compareValues('Token', $clientConnectorsResponse['data'][0]['configuration']['spy_token'], $shopifyConfigurationsToken);
+            $this->compareValues('ShopUrl', $clientConnectorsResponse['data'][0]['configuration']['spy_shop_url'], $shopifyConfigurationsShopUrl);
+            $this->compareValues('SalePriceConfig', $clientConnectorsResponse['data'][0]['configuration']['spy_sales_price_config'], $shopifyConfigurationsSalePriceConfig);
+            $this->compareValues('ShopCurrency', $clientConnectorsResponse['data'][0]['configuration']['spy_shop_currency'], $shopifyConfigurationsShopCurrency);
+            $this->compareValues('ProductsLanguage', $clientConnectorsResponse['data'][0]['configuration']['spy_products_language'], $shopifyConfigurationsProductsLanguage);
+            $this->compareValues('SyncProductSettings', $clientConnectorsResponse['data'][0]['configuration']['spy_sync_products_settings'], $shopifyConfigurationsSyncProductSettings);
+            $this->compareValues('CreateCollections', $clientConnectorsResponse['data'][0]['configuration']['spy_create_collections'], $shopifyConfigurationsCreateCollections);
+            $this->compareValues('UpdateImages', $clientConnectorsResponse['data'][0]['configuration']['spy_update_images'], $shopifyConfigurationsUpdateImages);
+            $this->compareValues('UpdateProducts', $clientConnectorsResponse['data'][0]['configuration']['spy_update_products'], $shopifyConfigurationsUpdateProducts);
+            $this->compareValues('UpdateSeo', $clientConnectorsResponse['data'][0]['configuration']['spy_update_seo'], $shopifyConfigurationsUpdateSeo);
+            $this->compareValues('RecreateDeletedCollection', $clientConnectorsResponse['data'][0]['configuration']['spy_recreate_deleted_collections'], $shopifyConfigurationsRecreateDeletedCollection);
+            $this->compareValues('RecreateDeletedProducts', $clientConnectorsResponse['data'][0]['configuration']['spy_recreate_deleted_products'], $shopifyConfigurationsRecreateDeletedProducts);
+            $this->compareValues('AddNewProductsAutomatically', $clientConnectorsResponse['data'][0]['configuration']['spy_add_new_products_automatically'], $shopifyConfigurationsAddNewProductsAutomatically);
+            $this->compareValues('UseMegaMenu', $clientConnectorsResponse['data'][0]['configuration']['spy_use_mega_menu'], $shopifyConfigurationsUseMegaMenu);
+        } catch (\Exception $e) {
             $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
         }
+
+
+        $this->testDetail('Patch client connectors for merchant to shopify - V2');
+
+        $clientConnector = new \MyPromo\Connect\SDK\Models\ClientConnector();
+
+        //$clientConnectorConnectorId->setConnectorKey = 14;
+        $clientConnectorConnectorKey = "shopify";
+        $clientConnectorTarget = "sales_channel";
+        $shopifyConfigurationsShopName = "Shop Name B";
+        $shopifyConfigurationsToken = "shpat_1234567890_B";
+        $shopifyConfigurationsShopUrl = "mypromo-demoB.myshopify.com";
+        $shopifyConfigurationsSalePriceConfig = "use_recommended_sales_price";
+        $shopifyConfigurationsShopCurrency = "USD";
+        $shopifyConfigurationsProductsLanguage = "EN";
+        $shopifyConfigurationsSyncProductSettings = "all";
+        $shopifyConfigurationsCreateCollections = false;
+        $shopifyConfigurationsUpdateImages = false;
+        $shopifyConfigurationsUpdateProducts = false;
+        $shopifyConfigurationsUpdateSeo = false;
+        $shopifyConfigurationsRecreateDeletedCollection = false;
+        $shopifyConfigurationsRecreateDeletedProducts = false;
+        $shopifyConfigurationsAddNewProductsAutomatically = false;
+        $shopifyConfigurationsUseMegaMenu = false;
+
+        //$clientConnector->setConnectorId($clientConnectorConnectorId);
+        $clientConnector->setConnectorKey($clientConnectorConnectorKey);
+        $clientConnector->setTarget($clientConnectorTarget);
+
+        $shopifyConfigurations = new \MyPromo\Connect\SDK\Models\ClientConnectorConfigurationShopify();
+        $shopifyConfigurations->setShopName($shopifyConfigurationsShopName);
+        $shopifyConfigurations->setToken($shopifyConfigurationsToken);
+        $shopifyConfigurations->setShopUrl($shopifyConfigurationsShopUrl);
+        $shopifyConfigurations->setSalePriceConfig($shopifyConfigurationsSalePriceConfig);
+        $shopifyConfigurations->setShopCurrency($shopifyConfigurationsShopCurrency);
+        $shopifyConfigurations->setProductsLanguage($shopifyConfigurationsProductsLanguage);
+        $shopifyConfigurations->setSyncProductSettings($shopifyConfigurationsSyncProductSettings);
+        $shopifyConfigurations->setCreateCollections($shopifyConfigurationsCreateCollections);
+        $shopifyConfigurations->setUpdateImages($shopifyConfigurationsUpdateImages);
+        $shopifyConfigurations->setUpdateProducts($shopifyConfigurationsUpdateProducts);
+        $shopifyConfigurations->setUpdateSeo($shopifyConfigurationsUpdateSeo);
+        $shopifyConfigurations->setRecreateDeletedCollection($shopifyConfigurationsRecreateDeletedCollection);
+        $shopifyConfigurations->setRecreateDeletedProducts($shopifyConfigurationsRecreateDeletedProducts);
+        $shopifyConfigurations->setAddNewProductsAutomatically($shopifyConfigurationsAddNewProductsAutomatically);
+        $shopifyConfigurations->setUseMegaMenu($shopifyConfigurationsUseMegaMenu);
+
+        // TODO - settings not saved correctly anymore! see CO-2314
+        // TODO - new settings added to sdk - after adding to api: test it!! see CO-2315
+
+        $clientConnector->setConfiguration($shopifyConfigurations);
+
+        $this->setClientConnectorSettings($clientConnectorRepositoryMerchant, $clientConnector);
+
+
+        $this->testDetail('Get client connector settings for merchant again and compare results');
+        $clientConnectorsResponse = $this->getClientConnectorSettings($clientConnectorRepositoryMerchant, null, null, $clientConnectorTarget);
+
+        try {
+            $this->compareValues('ConnectorKey', $clientConnectorsResponse['data'][0]['connector_key'], $clientConnectorConnectorKey);
+            $this->compareValues('Target', $clientConnectorsResponse['data'][0]['target'], $clientConnectorTarget);
+
+            $this->compareValues('ShopName', $clientConnectorsResponse['data'][0]['configuration']['spy_shop_name'], $shopifyConfigurationsShopName);
+            $this->compareValues('Token', $clientConnectorsResponse['data'][0]['configuration']['spy_token'], $shopifyConfigurationsToken);
+            $this->compareValues('ShopUrl', $clientConnectorsResponse['data'][0]['configuration']['spy_shop_url'], $shopifyConfigurationsShopUrl);
+            $this->compareValues('SalePriceConfig', $clientConnectorsResponse['data'][0]['configuration']['spy_sales_price_config'], $shopifyConfigurationsSalePriceConfig);
+            $this->compareValues('ShopCurrency', $clientConnectorsResponse['data'][0]['configuration']['spy_shop_currency'], $shopifyConfigurationsShopCurrency);
+            $this->compareValues('ProductsLanguage', $clientConnectorsResponse['data'][0]['configuration']['spy_products_language'], $shopifyConfigurationsProductsLanguage);
+            $this->compareValues('SyncProductSettings', $clientConnectorsResponse['data'][0]['configuration']['spy_sync_products_settings'], $shopifyConfigurationsSyncProductSettings);
+            $this->compareValues('CreateCollections', $clientConnectorsResponse['data'][0]['configuration']['spy_create_collections'], $shopifyConfigurationsCreateCollections);
+            $this->compareValues('UpdateImages', $clientConnectorsResponse['data'][0]['configuration']['spy_update_images'], $shopifyConfigurationsUpdateImages);
+            $this->compareValues('UpdateProducts', $clientConnectorsResponse['data'][0]['configuration']['spy_update_products'], $shopifyConfigurationsUpdateProducts);
+            $this->compareValues('UpdateSeo', $clientConnectorsResponse['data'][0]['configuration']['spy_update_seo'], $shopifyConfigurationsUpdateSeo);
+            $this->compareValues('RecreateDeletedCollection', $clientConnectorsResponse['data'][0]['configuration']['spy_recreate_deleted_collections'], $shopifyConfigurationsRecreateDeletedCollection);
+            $this->compareValues('RecreateDeletedProducts', $clientConnectorsResponse['data'][0]['configuration']['spy_recreate_deleted_products'], $shopifyConfigurationsRecreateDeletedProducts);
+            $this->compareValues('AddNewProductsAutomatically', $clientConnectorsResponse['data'][0]['configuration']['spy_add_new_products_automatically'], $shopifyConfigurationsAddNewProductsAutomatically);
+            $this->compareValues('UseMegaMenu', $clientConnectorsResponse['data'][0]['configuration']['spy_use_mega_menu'], $shopifyConfigurationsUseMegaMenu);
+        } catch (\Exception $e) {
+            $this->error($e->getMessage());
+        }
+
+
+        dd('stop');
 
 
         $this->testDetail('Patch client connectors for merchant to magento');
@@ -445,7 +634,7 @@ class TestSdk extends Command
 
         $clientConnector->setConfiguration($magentoConfigurations);
 
-        $this->info(print_r($clientConnector->toArray(), true));
+        $this->printApiResponse(print_r($clientConnector->toArray(), true));
 
 
         try {
@@ -468,6 +657,57 @@ class TestSdk extends Command
         $this->error('We just have helpers for magento and shopify - add configuration helpers for all other connectors !!!');
         $this->error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
+    }
+
+    private function getClientConnectorSettings(ClientConnectorRepository $clientConnectorRepository, $ConnectorId = null, $ConnectorKey = null, $Target = null)
+    {
+        $clientConnectorOptions = new \MyPromo\Connect\SDK\Helpers\ClientConnectorOptions();
+        $clientConnectorOptions->setPage(1); // get data from this page number
+        $clientConnectorOptions->setPerPage(15);
+        $clientConnectorOptions->setPagination(false);
+
+        ($ConnectorId != null) ? $clientConnectorOptions->setConnectorId($ConnectorId) : $clientConnectorOptions->setConnectorId(null);;
+
+        ($ConnectorKey != null) ? $clientConnectorOptions->setConnectorKey($ConnectorKey) : $clientConnectorOptions->setConnectorKey(null);;
+        ($Target != null) ? $clientConnectorOptions->setTarget($Target) : $clientConnectorOptions->setTarget(null);;
+
+
+        try {
+            $clientConnectorsResponseMerchant = $clientConnectorRepository->all($clientConnectorOptions);
+            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
+
+            return $clientConnectorsResponseMerchant;
+
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
+    }
+
+    private function setClientConnectorSettings(ClientConnectorRepository $clientConnectorRepository, $clientConnector)
+    {
+        $this->printApiResponse(print_r($clientConnector->toArray(), true));
+
+        try {
+            $clientConnectorsResponseMerchant = $clientConnectorRepository->update($clientConnector);
+            $this->printApiResponse(print_r($clientConnectorsResponseMerchant, true));
+
+            return $clientConnectorsResponseMerchant;
+
+        } catch (ApiResponseException | InputValidationException $e) {
+            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+            $this->stopMessage();
+            return 0;
+        } catch (ApiRequestException $e) {
+            $this->error($e->getMessage());
+            $this->stopMessage();
+            return 0;
+        }
     }
 
     /*
@@ -495,10 +735,6 @@ class TestSdk extends Command
         $callback->setUrl(config('connect.callback_url'));
         $connectorJob->setCallback($callback);
 
-
-        // TODO - helpers for each job type!!!
-
-        dd($connectorJob);
 
         try {
             $clientConnectorsResponseMerchant = $connectorJobRepository->create($connectorJob);
@@ -824,7 +1060,7 @@ class TestSdk extends Command
         $productExportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
         $productExportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
 
-        $this->info(print_r($productExportOptions->toArray(), 1));
+        $this->printApiResponse(print_r($productExportOptions->toArray(), true));
 
         try {
             $requestExportAllResponse = $requestExportRepository->all($productExportOptions);
@@ -842,8 +1078,8 @@ class TestSdk extends Command
 
         // TODO - CO-2321
         // TODO - fetch all exports with status SUCCESS to perform a download test (if result, else show warn message)
-        if (!empty($requestExportAllResponse)) {
-            $downloadFileUrl = $requestExportAllResponse['files']['export']['url'];
+        if (isset($requestExportAllResponse['data'][0]['files']['export']['url'])) {
+            $downloadFileUrl = $requestExportAllResponse['data'][0]['files']['export']['url'];
             $filename = 'download_generic-label-' . date('Ymd_His') . '.pdf';
             $this->downloadFile($downloadFileUrl, $filename);
         } else {
@@ -955,108 +1191,112 @@ class TestSdk extends Command
 
         $this->testDetail('Request data of newly created import...');
 
-        try {
-            $requestImportByIdResponse = $requestImportRepository->find($productImport->getId());
-            $this->printApiResponse(print_r($requestImportByIdResponse, 1));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            return 0;
-        } catch (ApiRequestException $e) {
-            $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
+        if ($productImport != false) {
+
+            try {
+                $requestImportByIdResponse = $requestImportRepository->find($productImport->getId());
+                $this->printApiResponse(print_r($requestImportByIdResponse, 1));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                return 0;
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+
+            // TODO - Bug see CO-2319
+            $this->testDetail('Trying to download the original file...');
+
+            $downloadFileUrl = $requestImportByIdResponse['files']['original']['url'];
+            $filename = 'download_import_original-' . date('Ymd_His') . '.xlsx';
+            $this->downloadFile($downloadFileUrl, $filename);
+
+
+            $this->testDetail('Request data of all imports...');
+
+            try {
+                $productImportOptions = new \MyPromo\Connect\SDK\Helpers\ProductImportOptions();
+                $productImportOptions->setPage(1); // get data from this page number
+                $productImportOptions->setPerPage(5);
+                $productImportOptions->setPagination(false);
+                $productImportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
+                $productImportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
+
+                $this->printApiResponse(print_r($productImportOptions->toArray(), true));
+
+                $requestImportAllResponse = $requestImportRepository->all($productImportOptions);
+
+                $this->printApiResponse(print_r($requestImportAllResponse, 1));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                return 0;
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+
+            $this->testDetail('Requesting new import... Cancel test');
+            $productImport = $this->createImport($requestImportRepository);
+            try {
+                $this->info('Trying to cancel...');
+                $requestImportByIdResponse = $requestImportRepository->cancel($productImport->getId());
+                $this->printApiResponse(print_r($requestImportByIdResponse, 1));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                //return 0; // TODO - is always failing cause its depending on status of job
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+
+            $this->testDetail('Requesting new import... Delete test');
+            $productImport = $this->createImport($requestImportRepository);
+            try {
+                $this->info('Trying to delete...');
+                $requestImportByIdResponse = $requestImportRepository->delete($productImport->getId());
+                $this->printApiResponse(print_r($requestImportByIdResponse, 1));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                #return 0; // TODO - is always failing cause its depending on status of job
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+
+            $this->testDetail('Requesting new import... Validate test');
+            $productImport = $this->createImport($requestImportRepository);
+            try {
+                $this->info('Trying to validate...');
+                $requestImportByIdResponse = $requestImportRepository->validate($productImport->getId());
+                $this->printApiResponse(print_r($requestImportByIdResponse, 1));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                #return 0; // TODO - is always failing cause its depending on status of job
+            } catch (ApiRequestException $e) {
+                $this->error($e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+
+
+            // TODO
+            // confirm import (needs body data...)
+        } else {
+            $this->warn('Unable to perform all import tests!');
         }
-
-
-        // TODO - Bug see CO-2319
-        $this->testDetail('Trying to download the original file...');
-
-        $downloadFileUrl = $requestImportByIdResponse['files']['original']['url'];
-        $filename = 'download_import_original-' . date('Ymd_His') . '.xlsx';
-        $this->downloadFile($downloadFileUrl, $filename);
-
-
-        $this->testDetail('Request data of all imports...');
-
-        try {
-            $productImportOptions = new \MyPromo\Connect\SDK\Helpers\ProductImportOptions();
-            $productImportOptions->setPage(1); // get data from this page number
-            $productImportOptions->setPerPage(5);
-            $productImportOptions->setPagination(false);
-            $productImportOptions->setCreatedFrom(new \DateTime(date('Y-m-d H:i:s')));
-            $productImportOptions->setCreatedTo(new \DateTime(date('Y-m-d H:i:s')));
-
-            $this->info(print_r($productImportOptions->toArray(), 1));
-
-            $requestImportAllResponse = $requestImportRepository->all($productImportOptions);
-
-            $this->printApiResponse(print_r($requestImportAllResponse, 1));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            return 0;
-        } catch (ApiRequestException $e) {
-            $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
-        }
-
-
-        $this->testDetail('Requesting new import... Cancel test');
-        $productImport = $this->createImport($requestImportRepository);
-        try {
-            $this->info('Trying to cancel...');
-            $requestImportByIdResponse = $requestImportRepository->cancel($productImport->getId());
-            $this->printApiResponse(print_r($requestImportByIdResponse, 1));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            //return 0; // TODO - is always failing cause its depending on status of job
-        } catch (ApiRequestException $e) {
-            $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
-        }
-
-
-        $this->testDetail('Requesting new import... Delete test');
-        $productImport = $this->createImport($requestImportRepository);
-        try {
-            $this->info('Trying to delete...');
-            $requestImportByIdResponse = $requestImportRepository->delete($productImport->getId());
-            $this->printApiResponse(print_r($requestImportByIdResponse, 1));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            #return 0; // TODO - is always failing cause its depending on status of job
-        } catch (ApiRequestException $e) {
-            $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
-        }
-
-
-        $this->testDetail('Requesting new import... Validate test');
-        $productImport = $this->createImport($requestImportRepository);
-        try {
-            $this->info('Trying to validate...');
-            $requestImportByIdResponse = $requestImportRepository->validate($productImport->getId());
-            $this->printApiResponse(print_r($requestImportByIdResponse, 1));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('API request failed: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            #return 0; // TODO - is always failing cause its depending on status of job
-        } catch (ApiRequestException $e) {
-            $this->error($e->getMessage());
-            $this->stopMessage();
-            return 0;
-        }
-
-
-        // TODO
-        // confirm import (needs body data...)
-
     }
 
     public function createImport(\MyPromo\Connect\SDK\Repositories\ProductFeeds\ProductImportRepository $requestImportRepository)
@@ -1069,8 +1309,8 @@ class TestSdk extends Command
 
         $productImportInput = new \MyPromo\Connect\SDK\Models\ProductImportInput();
 
-        //$productImportInput->setUrl('https://downloads.test.mypromo.com/feeds/Merchant-Prices.xlsx');
-        $productImportInput->setUrl('https://mypromo-shopify-dev.s3.eu-central-1.amazonaws.com/1651047033.xlsx?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYOR5ZFDEHKX74RD%2F20220427%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20220427T081034Z&X-Amz-SignedHeaders=host&X-Amz-Expires=604800&X-Amz-Signature=9ad5635d5f2b842d96af495d69e93c286cc3b460f45f5ce6ea953b38b93f5e68');
+        $productImportInput->setUrl('https://downloads.test.mypromo.com/feeds/Merchant-Prices.xlsx');
+        #$productImportInput->setUrl('https://mypromo-shopify-dev.s3.eu-central-1.amazonaws.com/1651047033.xlsx?X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYOR5ZFDEHKX74RD%2F20220427%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20220427T081034Z&X-Amz-SignedHeaders=host&X-Amz-Expires=604800&X-Amz-Signature=9ad5635d5f2b842d96af495d69e93c286cc3b460f45f5ce6ea953b38b93f5e68');
         $productImportInput->setFormat('xlsx');
 
         $productImport->setInput($productImportInput);
@@ -1697,27 +1937,49 @@ class TestSdk extends Command
         $this->info('************************************************************************************************************************************************');
     }
 
+    /*
+     *
+     */
     public function testDetail($title)
     {
-        $this->info('------------------------------------------------------------------------------------------------------------------------------------------------');
         $this->info($title);
         $this->info('------------------------------------------------------------------------------------------------------------------------------------------------');
     }
 
 
+    /*
+     *
+     */
     public function printApiResponse($response, int $crop_length = 100)
     {
-        // TODO - move toggle to somewhere else
-        $crop = false;
+        // TODO - move toggles to somewhere else
+        $show_api_response = true;
+        $crop = true;
 
-        if ($crop == true) {
-            $cropped_response = substr($response, 0, $crop_length) . "\n >>> cropped response\n\n";
+        if ($show_api_response == true) {
+            if ($crop == true) {
+                $cropped_response = substr($response, 0, $crop_length) . "\n >>> cropped response\n\n";
 
+            } else {
+                $cropped_response = $response;
+            }
+
+            $this->info($cropped_response);
+        }
+    }
+
+    /*
+     *
+     */
+    private function compareValues($key, $responseValue, $setValue)
+    {
+        if ($responseValue != $setValue) {
+            $this->error($key . ' was not set from ' . $responseValue . ' to ' . $setValue);
         } else {
-            $cropped_response = $response;
+            $this->info($key . ' was successfully updated to ' . $setValue);
+
         }
 
-        $this->info($cropped_response);
     }
 
 
