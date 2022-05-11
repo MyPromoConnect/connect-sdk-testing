@@ -109,7 +109,6 @@ class TestSdk extends Command
         $this->testClientConnectorsShopify();
         $this->info('');
 
-
         // TODO add more jobs
         $this->testClientJobsSalesChannel('products');
         $this->info('');
@@ -119,7 +118,6 @@ class TestSdk extends Command
         // TODO - CO-2327
         $this->testClientConnectorsMagento();
         $this->info('');
-
 
         $this->testClientJobsSalesChannel('prices');
         $this->info('');
@@ -446,7 +444,7 @@ class TestSdk extends Command
         $clientConnector = new \MyPromo\Connect\SDK\Models\Client\Connector();
 
         //$clientConnectorConnectorId->setConnectorKey = 14;
-        $clientConnectorConnectorKey = "magento_sales_channel";
+        $clientConnectorConnectorKey = "shopify_sales_channel";
         $clientConnectorTarget = "sales_channel";
         $shopifyConfigurationsShopName = "Shop Name";
         $shopifyConfigurationsToken = "shpat_1234567890";
@@ -525,7 +523,7 @@ class TestSdk extends Command
         $clientConnector = new \MyPromo\Connect\SDK\Models\Client\Connector();
 
         //$clientConnectorConnectorId->setConnectorKey = 14;
-        $clientConnectorConnectorKey = "magento_sales_channel";
+        $clientConnectorConnectorKey = "shopify_sales_channel";
         $clientConnectorTarget = "sales_channel";
         $shopifyConfigurationsShopName = "Shop Name B";
         $shopifyConfigurationsToken = "shpat_1234567890_B";
@@ -634,6 +632,7 @@ class TestSdk extends Command
         $magentoConfigurationsStoreCodeName = 'Store code';
         $magentoConfigurationsSyncProductsSettings = 'normal';
         $magentoConfigurationsSalesPriceConfig = 'use_sales_price';
+        $magentoConfigurationsIsServiceProductsAllowed = false;
 
         //$clientConnector->setConnectorId($clientConnectorConnectorId);
         $clientConnector->setConnectorKey($clientConnectorConnectorKey);
@@ -651,6 +650,7 @@ class TestSdk extends Command
         $magentoConfigurations->setStoreCodeName($magentoConfigurationsStoreCodeName);
         $magentoConfigurations->setSyncProductsSettings($magentoConfigurationsSyncProductsSettings);
         $magentoConfigurations->setSalesPriceConfig($magentoConfigurationsSalesPriceConfig);
+        $magentoConfigurations->setIsServiceProductsAllowed($magentoConfigurationsIsServiceProductsAllowed);
 
         // TODO - settings not saved correctly anymore! see CO-2314
         // TODO - new settings added to sdk - after adding to api: test it!! see CO-2315
@@ -678,6 +678,7 @@ class TestSdk extends Command
             $this->compareValues('StoreCodeName', $clientConnectorsResponse['data'][0]['configuration']['magento_store_code_name'], $magentoConfigurationsStoreCodeName);
             $this->compareValues('SyncProductsSettings', $clientConnectorsResponse['data'][0]['configuration']['sync_products_settings'], $magentoConfigurationsSyncProductsSettings);
             $this->compareValues('SalesPriceConfig', $clientConnectorsResponse['data'][0]['configuration']['sales_price_config'], $magentoConfigurationsSalesPriceConfig);
+            $this->compareValues('IsServiceProductsAllowed', $clientConnectorsResponse['data'][0]['configuration']['magento_is_service_products_allowed'], $magentoConfigurationsIsServiceProductsAllowed);
         } catch (\Exception $e) {
             $this->error('ApiRequestException: ' . $e->getMessage());
         }
@@ -702,6 +703,7 @@ class TestSdk extends Command
         $magentoConfigurationsStoreCodeName = 'Store codeB';
         $magentoConfigurationsSyncProductsSettings = 'all';
         $magentoConfigurationsSalesPriceConfig = 'use_buying_price';
+        $magentoConfigurationsIsServiceProductsAllowed = true;
 
         //$clientConnector->setConnectorId($clientConnectorConnectorId);
         $clientConnector->setConnectorKey($clientConnectorConnectorKey);
@@ -719,6 +721,8 @@ class TestSdk extends Command
         $magentoConfigurations->setStoreCodeName($magentoConfigurationsStoreCodeName);
         $magentoConfigurations->setSyncProductsSettings($magentoConfigurationsSyncProductsSettings);
         $magentoConfigurations->setSalesPriceConfig($magentoConfigurationsSalesPriceConfig);
+        $magentoConfigurations->setIsServiceProductsAllowed($magentoConfigurationsIsServiceProductsAllowed);
+
 
         // TODO - settings not saved correctly anymore! see CO-2314
         // TODO - new settings added to sdk - after adding to api: test it!! see CO-2315
@@ -746,6 +750,7 @@ class TestSdk extends Command
             $this->compareValues('StoreCodeName', $clientConnectorsResponse['data'][0]['configuration']['magento_store_code_name'], $magentoConfigurationsStoreCodeName);
             $this->compareValues('SyncProductsSettings', $clientConnectorsResponse['data'][0]['configuration']['sync_products_settings'], $magentoConfigurationsSyncProductsSettings);
             $this->compareValues('SalesPriceConfig', $clientConnectorsResponse['data'][0]['configuration']['sales_price_config'], $magentoConfigurationsSalesPriceConfig);
+            $this->compareValues('IsServiceProductsAllowed', $clientConnectorsResponse['data'][0]['configuration']['magento_is_service_products_allowed'], $magentoConfigurationsIsServiceProductsAllowed);
         } catch (\Exception $e) {
             $this->error('ApiRequestException: ' . $e->getMessage());
         }
@@ -814,7 +819,7 @@ class TestSdk extends Command
      */
     public function testClientJobsSalesChannel($job)
     {
-        $this->startMessage('testClientJobsSalesChannel');
+        $this->startMessage('ClientJobsSalesChannel');
         $connectorJobRepository = new JobRepository($this->clientMerchant);
 
 
@@ -1140,19 +1145,23 @@ class TestSdk extends Command
 
         $this->testDetail('Request data of newly created export...');
 
-        try {
-            $requestExportByIdResponse = $requestExportRepository->find($productExport->getId());
-            $this->printApiResponse(print_r($requestExportByIdResponse, 1));
-        } catch (ApiResponseException | InputValidationException $e) {
-            $this->error('ApiResponseException: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
-            $this->stopMessage();
-            return 0;
-        } catch (ApiRequestException $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
-            $this->stopMessage();
-            return 0;
-        }
+        if ($productExport) {
 
+            try {
+                $requestExportByIdResponse = $requestExportRepository->find($productExport->getId());
+                $this->printApiResponse(print_r($requestExportByIdResponse, 1));
+            } catch (ApiResponseException | InputValidationException $e) {
+                $this->error('ApiResponseException: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
+                $this->stopMessage();
+                return 0;
+            } catch (ApiRequestException $e) {
+                $this->error('ApiRequestException: ' . $e->getMessage());
+                $this->stopMessage();
+                return 0;
+            }
+        } else {
+            $this->error('Could not get created import cause requesting import failed');
+        }
 
         $this->testDetail('Request data of all exports...');
 
@@ -1450,7 +1459,7 @@ class TestSdk extends Command
      */
     public function testProducts()
     {
-        $this->startMessage('test product routes');
+        $this->startMessage(' product routes');
 
         $productsRepositoryMerchant = new \MyPromo\Connect\SDK\Repositories\Products\ProductRepository($this->clientMerchant);
         $productsRepositoryFulfiller = new \MyPromo\Connect\SDK\Repositories\Products\ProductRepository($this->clientFulfiller);
@@ -1682,7 +1691,7 @@ class TestSdk extends Command
      */
     public function testProductConfigurator()
     {
-        $this->startMessage('testProductConfigurator');
+        $this->startMessage('ProductConfigurator');
 
         $clientId = config('connect.client_merchant_id');
 
@@ -1776,7 +1785,7 @@ class TestSdk extends Command
      */
     public function testProduction()
     {
-        $this->startMessage('testProduction');
+        $this->startMessage('Production');
 
         $this->testDetail('Get all production orders');
         $productionRepository = new \MyPromo\Connect\SDK\Repositories\ProductionOrders\ProductionOrderRepository($this->clientFulfiller);
@@ -1844,7 +1853,7 @@ class TestSdk extends Command
                 return 0;
             }
         } else {
-            $this->error('Unable to test generic label route, cause there is no prodution order.');
+            $this->error('Unable to test generic label route, cause there is no production order.');
         }
 
 
@@ -1910,7 +1919,7 @@ class TestSdk extends Command
      */
     public function testMiscellaneous()
     {
-        $this->startMessage('testMiscellaneous');
+        $this->startMessage('Miscellaneous');
 
         $this->testDetail('get api status');
         $generalRepository = new \MyPromo\Connect\SDK\Repositories\Miscellaneous\GeneralRepository($this->clientMerchant);
@@ -2102,7 +2111,7 @@ class TestSdk extends Command
      */
     public function apiStatus($client)
     {
-        $this->startMessage('Test api status');
+        $this->startMessage(' api status');
         $miscellaneousRepository = new GeneralRepository($client);
 
         try {
@@ -2142,6 +2151,7 @@ class TestSdk extends Command
      */
     public function startMessage($title)
     {
+        $this->info('');
         $this->info('************************************************************************************************************************************************');
         $this->info($title);
         $this->info('************************************************************************************************************************************************');
