@@ -1032,6 +1032,37 @@ class TestSdk extends Command
 
         $orderRepository = new OrderRepository($this->clientMerchant);
 
+        $shipperAddress = new \MyPromo\Connect\SDK\Models\Address();
+        $shipperAddress->setAddressId(null);
+        $shipperAddress->setAddressKey(null);
+        $shipperAddress->setReference('your-reference-code');
+        $shipperAddress->setCompany('Sample Company');
+        $shipperAddress->setDepartment(null);
+        $shipperAddress->setSalutation(null);
+        $shipperAddress->setGender(null);
+        $shipperAddress->setDateOfBirth(new \DateTime(date('Y-m-d H:i:s')));
+        $shipperAddress->setFirstname('Sam');
+        $shipperAddress->setMiddlename(null);
+        $shipperAddress->setLastname('Sample');
+        $shipperAddress->setStreet('Sample Street 1');
+        $shipperAddress->setCareOf('Street Add');
+        $shipperAddress->setZip(12345);
+        $shipperAddress->setCity('Sample Town');
+        $shipperAddress->setStateCode('NW');
+        $shipperAddress->setDistrict('your-disctrict');
+        $shipperAddress->setCountryCode('DE');
+        $shipperAddress->setPhone('your-phone');
+        $shipperAddress->setFax('your-fax');
+        $shipperAddress->setMobile('your-mobile');
+        $shipperAddress->setEmail('sam@sample.com');
+        $shipperAddress->setVatId('DE1234567890');
+        $shipperAddress->setEoriNumber('55555555555');
+        $shipperAddress->setAccountHolder('account-holder');
+        $shipperAddress->setIban('your-iban');
+        $shipperAddress->setBicOrSwift('your-bic-or-swift');
+        $shipperAddress->setCommercialRegisterEntry('your-commercial-register-entry');
+
+
         $recipientAddress = new \MyPromo\Connect\SDK\Models\Address();
         $recipientAddress->setAddressId(null);
         $recipientAddress->setAddressKey(null);
@@ -1063,20 +1094,78 @@ class TestSdk extends Command
         $recipientAddress->setCommercialRegisterEntry('your-commercial-register-entry');
 
 
-        $this->warn('Improve testing for addresses - shipper, export, invoice...');
+        $exportAddress = new \MyPromo\Connect\SDK\Models\Address();
+        $exportAddress->setAddressId(null);
+        $exportAddress->setAddressKey(null);
+        $exportAddress->setReference('your-reference-code');
+        $exportAddress->setCompany('Sample Company');
+        $exportAddress->setDepartment(null);
+        $exportAddress->setSalutation(null);
+        $exportAddress->setGender(null);
+        $exportAddress->setDateOfBirth(new \DateTime(date('Y-m-d H:i:s')));
+        $exportAddress->setFirstname('Sam');
+        $exportAddress->setMiddlename(null);
+        $exportAddress->setLastname('Sample');
+        $exportAddress->setStreet('Sample Street 1');
+        $exportAddress->setCareOf('Street Add');
+        $exportAddress->setZip(12345);
+        $exportAddress->setCity('Sample Town');
+        $exportAddress->setStateCode('NW');
+        $exportAddress->setDistrict('your-disctrict');
+        $exportAddress->setCountryCode('DE');
+        $exportAddress->setPhone('your-phone');
+        $exportAddress->setFax('your-fax');
+        $exportAddress->setMobile('your-mobile');
+        $exportAddress->setEmail('sam@sample.com');
+        $exportAddress->setVatId('DE1234567890');
+        $exportAddress->setEoriNumber('55555555555');
+        $exportAddress->setAccountHolder('account-holder');
+        $exportAddress->setIban('your-iban');
+        $exportAddress->setBicOrSwift('your-bic-or-swift');
+        $exportAddress->setCommercialRegisterEntry('your-commercial-register-entry');
+
+
+        $invoiceAddress = new \MyPromo\Connect\SDK\Models\Address();
+        $invoiceAddress->setAddressId(null);
+        $invoiceAddress->setAddressKey(null);
+        $invoiceAddress->setReference('your-reference-code');
+        $invoiceAddress->setCompany('Sample Company');
+        $invoiceAddress->setDepartment(null);
+        $invoiceAddress->setSalutation(null);
+        $invoiceAddress->setGender(null);
+        $invoiceAddress->setDateOfBirth(new \DateTime(date('Y-m-d H:i:s')));
+        $invoiceAddress->setFirstname('Sam');
+        $invoiceAddress->setMiddlename(null);
+        $invoiceAddress->setLastname('Sample');
+        $invoiceAddress->setStreet('Sample Street 1');
+        $invoiceAddress->setCareOf('Street Add');
+        $invoiceAddress->setZip(12345);
+        $invoiceAddress->setCity('Sample Town');
+        $invoiceAddress->setStateCode('NW');
+        $invoiceAddress->setDistrict('your-disctrict');
+        $invoiceAddress->setCountryCode('DE');
+        $invoiceAddress->setPhone('your-phone');
+        $invoiceAddress->setFax('your-fax');
+        $invoiceAddress->setMobile('your-mobile');
+        $invoiceAddress->setEmail('sam@sample.com');
+        $invoiceAddress->setVatId('DE1234567890');
+        $invoiceAddress->setEoriNumber('55555555555');
+        $invoiceAddress->setAccountHolder('account-holder');
+        $invoiceAddress->setIban('your-iban');
+        $invoiceAddress->setBicOrSwift('your-bic-or-swift');
+        $invoiceAddress->setCommercialRegisterEntry('your-commercial-register-entry');
+
 
         $order = new \MyPromo\Connect\SDK\Models\Orders\Order();
         $order->setReference('your-order-reference');
         $order->setReference2('your-order-reference2');
         $order->setComment('your comment for order here');
-        //$order->setShipper($shipperAddress);
+        $order->setShipper($shipperAddress);
         $order->setRecipient($recipientAddress);
-        //$order->setExport($exportAddress);
-        //$order->setInvoice($invoiceAddress);
+        $order->setExport($exportAddress);
 
         // TODO - CO-1601 not working properly...
-        // TODO - remove test
-        $order->setInvoice($recipientAddress);
+        $order->setInvoice($invoiceAddress);
 
         # Optional parameters
         $order->setFakePreflight(true);
@@ -1149,6 +1238,7 @@ class TestSdk extends Command
         $orderItemRepository->submit($orderItem);
 
         // TODO
+        $this->warn('TODO - Add order item with relation + service sku');
         /*
         # To add service item mention order_item_id in relation
         $orderItemRelation = new \MyPromo\Connect\SDK\Models\Orders\OrderItemRelation();
