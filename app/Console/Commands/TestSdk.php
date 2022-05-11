@@ -94,25 +94,25 @@ class TestSdk extends Command
         #$this->testGeneralRoutes();
         #$this->info('');
 
-        /*
-                // TODO - WIP
-                // TODO - finish all api routes in this category and add tests
-                // TODO - contains api bugs
-                $this->testClientSettings();
-                $this->info('');
+
+        // TODO - WIP
+        // TODO - finish all api routes in this category and add tests
+        // TODO - contains api bugs
+        $this->testClientSettings();
+        $this->info('');
 
 
-                $this->warn('We just have connector helpers for magento and shopify - add configuration helpers for all other connectors !!!');
+        $this->warn('We just have connector helpers for magento and shopify - add configuration helpers for all other connectors !!!');
 
-                // TODO - WIP
-                // TODO - contains api bugs
-                $this->testClientConnectorsShopify();
-                $this->info('');
+        // TODO - WIP
+        // TODO - contains api bugs
+        $this->testClientConnectorsShopify();
+        $this->info('');
 
 
-                // TODO add more jobs
-                $this->testClientJobsSalesChannel('products');
-                $this->info('');
+        // TODO add more jobs
+        $this->testClientJobsSalesChannel('products');
+        $this->info('');
 
         // TODO - WIP
         // TODO - contains api bugs
@@ -126,7 +126,6 @@ class TestSdk extends Command
 
         $this->testClientJobsSalesChannel('inventory');
         $this->info('');
-
 
 
         $this->testDesignModule();
@@ -151,14 +150,11 @@ class TestSdk extends Command
         $this->testProductImport();
         $this->info('');
 
-*/
-
 
         // TODO - sdk does not support this routes yet
         $this->testProductConfigurator();
         $this->info('');
 
-        dd('stop');
 
         // TODO check short url provided and add download tests (see implementation of downloadFile($url, $targetFile))
         $this->testProduction();
