@@ -1063,6 +1063,8 @@ class TestSdk extends Command
         $recipientAddress->setCommercialRegisterEntry('your-commercial-register-entry');
 
 
+        $this->warn('Improve testing for addresses - shipper, export, invoice...');
+
         $order = new \MyPromo\Connect\SDK\Models\Orders\Order();
         $order->setReference('your-order-reference');
         $order->setReference2('your-order-reference2');
@@ -1072,7 +1074,8 @@ class TestSdk extends Command
         //$order->setExport($exportAddress);
         //$order->setInvoice($invoiceAddress);
 
-        // CO-1601 not working properly...
+        // TODO - CO-1601 not working properly...
+        // TODO - remove test
         $order->setInvoice($recipientAddress);
 
         # Optional parameters
@@ -1093,39 +1096,66 @@ class TestSdk extends Command
             return 0;
         }
 
-        dd('go on writing tests - add items - submit order - get order etc.');
-
 
         $this->info('Add order item with design');
 
         $orderItem = new \MyPromo\Connect\SDK\Models\Orders\OrderItem();
         $orderItem->setOrderId($order->getId());
-        $orderItem->setQuantity(35);
+        $orderItem->setQuantity(config('connect.test_sku_child_qty'));
         $orderItem->setReference('your-reference');
         $orderItem->setComment('comment for order item here');
 
+        $customs = new \MyPromo\Connect\SDK\Models\Orders\Customs();
+        $customs->setAmount(10.5);
+        $customs->setDescription('Printed matter, n.e.s.');
+        $customs->setOrigin('DE');
+        $customs->setCurrency('EUR');
+        $customs->setNumber('49119900');
+        $orderItem->setCustoms($customs);
+
         $orderItem->setDesigns($design);
 
-
-        $design->getId();
+        //$design->getId();
 
 
         $this->info('Add order item with file');
 
         $orderItem = new \MyPromo\Connect\SDK\Models\Orders\OrderItem();
-        $orderItem->setOrderId($order->getId());
         $orderItem->setReference('your-reference');
         $orderItem->setQuantity(config('connect.test_sku_qty'));
+        $orderItem->setOrderId($order->getId());
         $orderItem->setSku(config('connect.test_sku_child'));
         $orderItem->setComment('comment for order item here');
 
+        $customs = new \MyPromo\Connect\SDK\Models\Orders\Customs();
+        $customs->setAmount(20.5);
+        $customs->setDescription('Printed matter, n.e.s.');
+        $customs->setOrigin('DE');
+        $customs->setCurrency('EUR');
+        $customs->setNumber('49119901');
+        $orderItem->setCustoms($customs);
+
+        $file = new \MyPromo\Connect\SDK\Models\File();
+        $file->setType('front');
+        $file->setUrl('https://downloads.test.mypromo.com/a4.pdf');
+
+        $file->setHttpsBasicAuthUser('user');
+        $file->setHttpsBasicAuthPassword('pass');
+
+        $orderItem->setFiles($file);
+
+
+        // TODO
+        /*
         # To add service item mention order_item_id in relation
         $orderItemRelation = new \MyPromo\Connect\SDK\Models\Orders\OrderItemRelation();
         $orderItemRelation->setOrderItemId(22);
 
         # To set relation pass object of orderItemRelation after setting up order_item_id which is added previously in order
         $orderItem->setRelation($orderItemRelation->toArray());
+        */
 
+        $orderRepository->submit($order->getId());
 
     }
 
