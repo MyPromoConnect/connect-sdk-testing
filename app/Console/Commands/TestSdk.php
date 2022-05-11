@@ -1098,6 +1098,7 @@ class TestSdk extends Command
 
 
         $this->info('Add order item with design');
+        $orderItemRepository = new \MyPromo\Connect\SDK\Repositories\Orders\OrderItemRepository($this->clientMerchant);
 
         $orderItem = new \MyPromo\Connect\SDK\Models\Orders\OrderItem();
         $orderItem->setOrderId($order->getId());
@@ -1115,10 +1116,11 @@ class TestSdk extends Command
 
         $orderItem->setDesigns($design);
 
-        //$design->getId();
+        $orderItemRepository->submit($orderItem);
 
 
         $this->info('Add order item with file');
+        $orderItemRepository = new \MyPromo\Connect\SDK\Repositories\Orders\OrderItemRepository($this->clientMerchant);
 
         $orderItem = new \MyPromo\Connect\SDK\Models\Orders\OrderItem();
         $orderItem->setReference('your-reference');
@@ -1144,6 +1146,7 @@ class TestSdk extends Command
 
         $orderItem->setFiles($file);
 
+        $orderItemRepository->submit($orderItem);
 
         // TODO
         /*
