@@ -2163,7 +2163,7 @@ class TestSdk extends Command
     public function printApiResponse($response, int $crop_length = 100)
     {
         // TODO - move toggles to somewhere else
-        $show_api_response = true;
+        $show_api_response = false;
         $crop = false;
 
         if ($show_api_response == true) {
