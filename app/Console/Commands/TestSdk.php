@@ -10,7 +10,7 @@ use MyPromo\Connect\SDK\Exceptions\InputValidationException;
 use MyPromo\Connect\SDK\Helpers\Products\ProductVariantOptions;
 use MyPromo\Connect\SDK\Repositories\Client\ClientConnectorRepository;
 use MyPromo\Connect\SDK\Repositories\Client\ClientSettingRepository;
-use MyPromo\Connect\SDK\Repositories\Jobs\ConnectorJobRepository;
+use MyPromo\Connect\SDK\Repositories\Jobs\JobRepository;
 use MyPromo\Connect\SDK\Repositories\Orders\OrderRepository;
 use MyPromo\Connect\SDK\Models\Designs\Design;
 use MyPromo\Connect\SDK\Repositories\Designs\DesignRepository;
@@ -819,15 +819,15 @@ class TestSdk extends Command
     public function testClientJobsSalesChannel($job)
     {
         $this->startMessage('testClientJobsSalesChannel');
-        $connectorJobRepository = new ConnectorJobRepository($this->clientMerchant);
+        $connectorJobRepository = new JobRepository($this->clientMerchant);
 
 
         $this->testDetail('Create a sales channel sync job');
 
-        $connectorJob = new \MyPromo\Connect\SDK\Models\Jobs\ConnectorJob();
+        $connectorJob = new \MyPromo\Connect\SDK\Models\Jobs\Job();
         $connectorJob->setTarget('sales_channel');
 
-        $filters = new \MyPromo\Connect\SDK\Models\Jobs\ConnectorJobFilters();
+        $filters = new \MyPromo\Connect\SDK\Models\Jobs\JobFilters();
         $filters->setJob($job);
         $filters->setFulfiller(null);
         $filters->setProducts(null);
@@ -1746,17 +1746,17 @@ class TestSdk extends Command
 
             $default_child = $optionsResponse['available_variants']['default']['id'];
 
-            $variantsRepository = new \MyPromo\Connect\SDK\Repositories\Configurator\VariantsRepository($this->clientMerchant);
+            $variantRepository = new \MyPromo\Connect\SDK\Repositories\Configurator\VariantRepository($this->clientMerchant);
 
             $configuratorVariantOptions = new \MyPromo\Connect\SDK\Helpers\Configurator\VariantOptions();
             $configuratorVariantOptions->setLang('DE'); // get data from this page number
             $configuratorVariantOptions->setClientId($clientId);
+            $configuratorVariantOptions->setCurrency('EUR');
             $configuratorVariantOptions->setId(null);
             $configuratorVariantOptions->setSku($default_child);
-            $configuratorVariantOptions->setCurrency('EUR');
 
             try {
-                $variantResponse = $variantsRepository->all($configuratorVariantOptions);
+                $variantResponse = $variantRepository->all($configuratorVariantOptions);
                 $this->printApiResponse(print_r($variantResponse, true));
             } catch (ApiResponseException | InputValidationException $e) {
                 $this->error('ApiResponseException: ' . $e->getMessage() . ' - Errors: ' . print_r($e->getErrors(), true) . ' - Code: ' . $e->getCode());
