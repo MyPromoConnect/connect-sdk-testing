@@ -79,8 +79,10 @@ class TestSdk extends Command
         $this->info('Testing Start........');
         $this->info('');
 
+
         $this->makeConnectionWithMerchantClient();
         $this->info('');
+
 
         $this->makeConnectionWithFulfillerClient();
         $this->info('');
@@ -101,6 +103,7 @@ class TestSdk extends Command
         $this->testClientSettings();
         $this->info('');
 
+        dd('bla');
 
         $this->warn('We just have connector helpers for magento and shopify - add configuration helpers for all other connectors !!!');
 
@@ -285,7 +288,7 @@ class TestSdk extends Command
             $this->compareValues('ActivateNewFulfiller', $clientSettingResponseMerchant['automatisms']['activate_new_fulfillers'], $clientSettingsMerchantActivateNewFulfiller);
             $this->compareValues('ActivateNewProducts', $clientSettingResponseMerchant['automatisms']['activate_new_products'], $clientSettingsMerchantActivateNewProducts);
         } catch (\Exception $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
+            $this->error('compareValues Exception: ' . $e->getMessage());
         }
 
 
@@ -326,7 +329,7 @@ class TestSdk extends Command
             $this->compareValues('ActivateNewFulfiller', $clientSettingResponseMerchant['automatisms']['activate_new_fulfillers'], $clientSettingsMerchantActivateNewFulfiller);
             $this->compareValues('ActivateNewProducts', $clientSettingResponseMerchant['automatisms']['activate_new_products'], $clientSettingsMerchantActivateNewProducts);
         } catch (\Exception $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
+            $this->error('compareValues Exception: ' . $e->getMessage());
         }
 
 
@@ -347,17 +350,17 @@ class TestSdk extends Command
 
 
         $this->testDetail('Get client settings for fulfiller again and compare results');
-        $clientSettingResponseFulfiller = $this->getClientSettings($clientSettingRepositoryMerchant);
+        $clientSettingResponseFulfiller = $this->getClientSettings($clientSettingRepositoryFulfiller);
 
         try {
             $this->compareValues('HasToSupplyCarrier', $clientSettingResponseFulfiller['shipping']['has_to_supply_carrier'], $clientSettingsFulfillerHasToSupplyCarrier);
             $this->compareValues('HasToSupplyTrackingCode', $clientSettingResponseFulfiller['shipping']['has_to_supply_tracking_code'], $clientSettingsFulfillerHasToSupplyTrackingCode);
         } catch (\Exception $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
+            $this->error('compareValues Exception: ' . $e->getMessage());
         }
 
 
-        $this->testDetail('Patch client settings for fulfiller - V1');
+        $this->testDetail('Patch client settings for fulfiller - V2');
 
         $clientSettingsFulfiller = new \MyPromo\Connect\SDK\Models\Client\SettingsFulfiller();
         $clientSettingsFulfillerHasToSupplyCarrier = true;
@@ -370,13 +373,13 @@ class TestSdk extends Command
 
 
         $this->testDetail('Get client settings for fulfiller again and compare results');
-        $clientSettingResponseFulfiller = $this->getClientSettings($clientSettingRepositoryMerchant);
+        $clientSettingResponseFulfiller = $this->getClientSettings($clientSettingRepositoryFulfiller);
 
         try {
             $this->compareValues('HasToSupplyCarrier', $clientSettingResponseFulfiller['shipping']['has_to_supply_carrier'], $clientSettingsFulfillerHasToSupplyCarrier);
             $this->compareValues('HasToSupplyTrackingCode', $clientSettingResponseFulfiller['shipping']['has_to_supply_tracking_code'], $clientSettingsFulfillerHasToSupplyTrackingCode);
         } catch (\Exception $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
+            $this->error('compareValues Exception: ' . $e->getMessage());
         }
 
 
@@ -514,7 +517,7 @@ class TestSdk extends Command
             $this->compareValues('AddNewProductsAutomatically', $clientConnectorsResponse['data'][0]['configuration']['spy_add_new_products_automatically'], $shopifyConfigurationsAddNewProductsAutomatically);
             $this->compareValues('UseMegaMenu', $clientConnectorsResponse['data'][0]['configuration']['spy_use_mega_menu'], $shopifyConfigurationsUseMegaMenu);
         } catch (\Exception $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
+            $this->error('compareValues Exception: ' . $e->getMessage());
         }
 
 
@@ -593,7 +596,7 @@ class TestSdk extends Command
             $this->compareValues('AddNewProductsAutomatically', $clientConnectorsResponse['data'][0]['configuration']['spy_add_new_products_automatically'], $shopifyConfigurationsAddNewProductsAutomatically);
             $this->compareValues('UseMegaMenu', $clientConnectorsResponse['data'][0]['configuration']['spy_use_mega_menu'], $shopifyConfigurationsUseMegaMenu);
         } catch (\Exception $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
+            $this->error('compareValues Exception: ' . $e->getMessage());
         }
 
 
@@ -680,7 +683,7 @@ class TestSdk extends Command
             $this->compareValues('SalesPriceConfig', $clientConnectorsResponse['data'][0]['configuration']['sales_price_config'], $magentoConfigurationsSalesPriceConfig);
             $this->compareValues('IsServiceProductsAllowed', $clientConnectorsResponse['data'][0]['configuration']['magento_is_service_products_allowed'], $magentoConfigurationsIsServiceProductsAllowed);
         } catch (\Exception $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
+            $this->error('compareValues Exception: ' . $e->getMessage());
         }
 
 
@@ -752,7 +755,7 @@ class TestSdk extends Command
             $this->compareValues('SalesPriceConfig', $clientConnectorsResponse['data'][0]['configuration']['sales_price_config'], $magentoConfigurationsSalesPriceConfig);
             $this->compareValues('IsServiceProductsAllowed', $clientConnectorsResponse['data'][0]['configuration']['magento_is_service_products_allowed'], $magentoConfigurationsIsServiceProductsAllowed);
         } catch (\Exception $e) {
-            $this->error('ApiRequestException: ' . $e->getMessage());
+            $this->error('compareValues Exception: ' . $e->getMessage());
         }
 
 
@@ -1036,7 +1039,7 @@ class TestSdk extends Command
         $shipperAddress->setAddressId(null);
         $shipperAddress->setAddressKey(null);
         $shipperAddress->setReference('your-reference-code');
-        $shipperAddress->setCompany('Sample Company');
+        $shipperAddress->setCompany('Sample Company Shipper');
         $shipperAddress->setDepartment(null);
         $shipperAddress->setSalutation(null);
         $shipperAddress->setGender(null);
@@ -1067,7 +1070,7 @@ class TestSdk extends Command
         $recipientAddress->setAddressId(null);
         $recipientAddress->setAddressKey(null);
         $recipientAddress->setReference('your-reference-code');
-        $recipientAddress->setCompany('Sample Company');
+        $recipientAddress->setCompany('Sample Company Recipient');
         $recipientAddress->setDepartment(null);
         $recipientAddress->setSalutation(null);
         $recipientAddress->setGender(null);
@@ -1098,7 +1101,7 @@ class TestSdk extends Command
         $exportAddress->setAddressId(null);
         $exportAddress->setAddressKey(null);
         $exportAddress->setReference('your-reference-code');
-        $exportAddress->setCompany('Sample Company');
+        $exportAddress->setCompany('Sample Company Export');
         $exportAddress->setDepartment(null);
         $exportAddress->setSalutation(null);
         $exportAddress->setGender(null);
@@ -1129,7 +1132,7 @@ class TestSdk extends Command
         $invoiceAddress->setAddressId(null);
         $invoiceAddress->setAddressKey(null);
         $invoiceAddress->setReference('your-reference-code');
-        $invoiceAddress->setCompany('Sample Company');
+        $invoiceAddress->setCompany('Sample Company Invoice');
         $invoiceAddress->setDepartment(null);
         $invoiceAddress->setSalutation(null);
         $invoiceAddress->setGender(null);
@@ -1825,8 +1828,6 @@ class TestSdk extends Command
         $configuratorCategoriesOptions = new \MyPromo\Connect\SDK\Helpers\Configurator\CategoriesOptions();
         $configuratorCategoriesOptions->setLang('DE'); // get data from this page number
         $configuratorCategoriesOptions->setClientId($clientId);
-        $configuratorCategoriesOptions->setEmpty(false);
-        $configuratorCategoriesOptions->setHidden(true);
 
         try {
             $categoriesResponse = $categoriesRepository->all($configuratorCategoriesOptions);
@@ -2296,7 +2297,7 @@ class TestSdk extends Command
     public function printApiResponse($response, int $crop_length = 100)
     {
         // TODO - move toggles to somewhere else
-        $show_api_response = false;
+        $show_api_response = true;
         $crop = false;
 
         if ($show_api_response == true) {
